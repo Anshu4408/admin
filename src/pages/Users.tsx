@@ -22,6 +22,7 @@ export const UsersPage: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [pagination, setPagination] = useState<Pagination>({ total: 0, page: 1, limit: 10, pages: 1 });
   const [loading, setLoading] = useState(true);
+  const [exporting, setExporting] = useState(false);
 
   // Filters & Search
   const [search, setSearch] = useState('');
@@ -43,6 +44,17 @@ export const UsersPage: React.FC = () => {
   const showNotification = (type: 'success' | 'error', message: string) => {
     setNotification({ type, message });
     setTimeout(() => setNotification(null), 4000);
+  };
+
+  const handleExport = async () => {
+    setExporting(true);
+    try {
+      await api.users.downloadCsv();
+    } catch {
+      showNotification('error', 'Could not export users. Please try again.');
+    } finally {
+      setExporting(false);
+    }
   };
 
   const fetchUsers = useCallback(async (pageToLoad = 1) => {
@@ -149,11 +161,12 @@ export const UsersPage: React.FC = () => {
         subtitle={`Managing ${pagination.total} registered participants across all departments`}
         actions={
           <button
-            onClick={() => api.users.downloadCsv()}
+            onClick={handleExport}
+            disabled={exporting}
             className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-xs font-semibold text-white transition-all shadow-soft"
           >
             <Download className="w-3.5 h-3.5" />
-            <span>Export CSV</span>
+            <span>{exporting ? 'Exporting…' : 'Export CSV'}</span>
           </button>
         }
       />

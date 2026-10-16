@@ -20,6 +20,20 @@ export const Dashboard: React.FC = () => {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [exportingUsers, setExportingUsers] = useState(false);
+  const [exportError, setExportError] = useState<string | null>(null);
+
+  const handleUserExport = async () => {
+    setExportingUsers(true);
+    setExportError(null);
+    try {
+      await api.users.downloadCsv();
+    } catch {
+      setExportError('Could not export users. Please try again.');
+    } finally {
+      setExportingUsers(false);
+    }
+  };
 
   const fetchStats = async () => {
     try {
@@ -62,6 +76,7 @@ export const Dashboard: React.FC = () => {
       />
 
       <main className="flex-1 p-8 max-w-7xl w-full mx-auto space-y-7">
+        {exportError && <div role="alert" className="p-4 rounded-xl text-xs font-semibold border border-rose-200 bg-rose-50 text-rose-700">{exportError}</div>}
         {/* Top 4 Key Metric Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           <StatsCard
@@ -179,7 +194,8 @@ export const Dashboard: React.FC = () => {
                 Recent Participants
               </h3>
               <button
-                onClick={() => api.users.downloadCsv()}
+                onClick={handleUserExport}
+                disabled={exportingUsers}
                 className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-brand-600 transition-colors"
               >
                 <Download className="w-3.5 h-3.5" />
