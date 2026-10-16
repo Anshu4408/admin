@@ -55,6 +55,9 @@ export const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
       </Badge>
     );
   }
+  if (s === 'reversed') {
+    return <Badge variant="rose">Unpaid (reversed)</Badge>;
+  }
   if (s === 'failed' || s === 'rejected') {
     return (
       <Badge variant="rose">

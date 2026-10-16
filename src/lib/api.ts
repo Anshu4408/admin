@@ -299,7 +299,7 @@ export const api = {
         const { data } = await apiClient.get<ApiResponse<QRPayment[]>>('/api/admin/qr-payments');
         const qrList = Array.isArray(data?.data) ? data.data : [];
         const rows = [
-          ['Payment ID', 'Team ID', 'UTR', 'Amount', 'Slot', 'Status', 'Submitted At', 'Verified By', 'Admin Note'],
+          ['Payment ID', 'Team ID', 'UTR', 'Amount', 'Slot', 'Status', 'Submitted At', 'Verified By', 'Admin Note', 'Reversed At', 'Reversed By', 'Reversal Reason'],
           ...qrList.map((q) => [
             q.id,
             q.team_id,
@@ -310,6 +310,9 @@ export const api = {
             q.submitted_at,
             q.verified_by || '',
             q.admin_note || '',
+            q.reversed_at || '',
+            q.reversed_by || '',
+            q.reversal_reason || '',
           ]),
         ];
         const csv = rows.map((r) => r.map(csvCell).join(',')).join('\n');
@@ -377,6 +380,10 @@ export const api = {
     // Approve QR payment submission and mark team as PAID
     approvePayment: async (id: number) => {
       const { data } = await apiClient.post<ApiResponse>(`/api/admin/qr-payments/${id}/approve`);
+      return data;
+    },
+    reversePayment: async (id: number, reason: string) => {
+      const { data } = await apiClient.post<ApiResponse>(`/api/admin/qr-payments/${id}/reverse`, { reason, confirmed: true });
       return data;
     },
     // Reject QR payment submission with admin note and revert team to Pending

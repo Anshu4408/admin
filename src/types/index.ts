@@ -112,10 +112,13 @@ export interface QRPayment {
   screenshot_url?: string;
   qr_slot_index: number;
   amount: number;
-  status: 'processing' | 'paid' | 'rejected' | string;
+  status: 'processing' | 'paid' | 'rejected' | 'reversed' | string;
   admin_note?: string;
   submitted_at: string;
   verified_at?: string;
   verified_by?: string;
+  reversed_at?: string;
+  reversed_by?: string;
+  reversal_reason?: string;
 }
 

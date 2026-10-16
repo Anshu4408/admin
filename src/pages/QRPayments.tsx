@@ -59,6 +59,12 @@ export const QRPaymentsPage: React.FC = () => {
   const [rejectNote, setRejectNote] = useState<string>('');
   const [isRejecting, setIsRejecting] = useState(false);
 
+  const [reverseTarget, setReverseTarget] = useState<QRPayment | null>(null);
+  const [reverseReason, setReverseReason] = useState('');
+  const [reverseConfirmed, setReverseConfirmed] = useState(false);
+  const [reverseError, setReverseError] = useState<string | null>(null);
+  const [isReversing, setIsReversing] = useState(false);
+
   // Direct Manual Team Verification Modal
   const [isManualTeamModalOpen, setIsManualTeamModalOpen] = useState(false);
   const [manualTeamId, setManualTeamId] = useState<string>('');
@@ -232,6 +238,29 @@ export const QRPaymentsPage: React.FC = () => {
       showNotification('error', err.response?.data?.message || 'Error rejecting payment');
     } finally {
       setIsRejecting(false);
+    }
+  };
+
+  const handleMarkUnpaid = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!reverseTarget || !reverseConfirmed || !reverseReason.trim() || isReversing) return;
+    setIsReversing(true);
+    setReverseError(null);
+    try {
+      const res = await api.qr.reversePayment(reverseTarget.id, reverseReason.trim());
+      if (!res.success) throw new Error(res.message || 'Could not mark payment unpaid');
+      showNotification('success', `Team ${reverseTarget.team_id} is now unpaid (Pending). The correction is recorded.`);
+      setReverseTarget(null);
+      setReverseReason('');
+      setReverseConfirmed(false);
+      await fetchSubmissions();
+    } catch (error: any) {
+      const missingUpdate = error.response?.status === 404;
+      setReverseError(missingUpdate
+        ? error.response?.data?.message || 'The payment could not be found or the backend update is not deployed yet.'
+        : error.response?.data?.message || error.message || 'Could not mark payment unpaid');
+    } finally {
+      setIsReversing(false);
     }
   };
 
@@ -589,6 +618,7 @@ export const QRPaymentsPage: React.FC = () => {
                   <option value="processing">Processing (Pending Review)</option>
                   <option value="paid">Paid (Approved)</option>
                   <option value="rejected">Rejected</option>
+                  <option value="reversed">Unpaid (Reversed)</option>
                 </select>
 
                 {(searchQuery || statusFilter) && (
@@ -650,6 +680,7 @@ export const QRPaymentsPage: React.FC = () => {
                       filteredSubmissions.map((sub) => {
                         const isProcessing = sub.status?.toLowerCase() === 'processing';
                         const isPaid = sub.status?.toLowerCase() === 'paid';
+                        const isReversed = sub.status?.toLowerCase() === 'reversed';
 
                         return (
                           <tr key={sub.id} className="hover:bg-slate-50/80 transition-colors">
@@ -741,6 +772,12 @@ export const QRPaymentsPage: React.FC = () => {
 
                             {/* Audit Note / Verified By */}
                             <td className="py-3.5 px-4 text-[11px] text-slate-500">
+                              {sub.reversal_reason && (
+                                <div className="mb-1 text-rose-700 max-w-xs break-words">
+                                  <p className="font-semibold">Marked unpaid: {sub.reversal_reason}</p>
+                                  <p className="text-[10px]">By: {sub.reversed_by || 'Administrator'}{sub.reversed_at ? ` · ${new Date(sub.reversed_at).toLocaleString()}` : ''}</p>
+                                </div>
+                              )}
                               {sub.admin_note ? (
                                 <span className="text-slate-800 font-medium block truncate max-w-xs">
                                   {sub.admin_note}
@@ -789,13 +826,27 @@ export const QRPaymentsPage: React.FC = () => {
                                 )}
 
                                 {isPaid && (
-                                  <span className="flex items-center gap-1 text-emerald-600 font-semibold text-xs bg-emerald-50 px-2 py-1 rounded-lg border border-emerald-200/60">
-                                    <CheckCircle2 className="w-3.5 h-3.5" />
-                                    <span>Verified</span>
-                                  </span>
+                                  <>
+                                    <span className="flex items-center gap-1 text-emerald-600 font-semibold text-xs bg-emerald-50 px-2 py-1 rounded-lg border border-emerald-200/60">
+                                      <CheckCircle2 className="w-3.5 h-3.5" />
+                                      <span>Verified</span>
+                                    </span>
+                                    <button
+                                      onClick={() => {
+                                        setReverseTarget(sub);
+                                        setReverseReason('');
+                                        setReverseConfirmed(false);
+                                        setReverseError(null);
+                                      }}
+                                      disabled={isReversing || processingId !== null}
+                                      className="px-2.5 py-1 rounded-lg border border-rose-200 text-rose-700 hover:bg-rose-50 text-xs font-semibold disabled:opacity-50"
+                                    >
+                                      Mark as unpaid
+                                    </button>
+                                  </>
                                 )}
 
-                                {!isProcessing && !isPaid && (
+                                {!isProcessing && !isPaid && !isReversed && (
                                   <button
                                     onClick={() => handleApprovePayment(sub)}
                                     disabled={processingId === sub.id}
@@ -985,6 +1036,49 @@ export const QRPaymentsPage: React.FC = () => {
                     <span>Save QR Code</span>
                   </>
                 )}
+              </button>
+            </div>
+          </form>
+        </Modal>
+      )}
+
+      {reverseTarget && (
+        <Modal
+          isOpen={!!reverseTarget}
+          onClose={() => { if (!isReversing) setReverseTarget(null); }}
+          title="Mark approved payment as unpaid"
+          subtitle={`Team ${reverseTarget.team_id} · UTR ${reverseTarget.utr}`}
+          maxWidth="md"
+        >
+          <form onSubmit={handleMarkUnpaid} className="space-y-4">
+            <div className="p-3 rounded-xl border border-rose-200 bg-rose-50 text-xs text-rose-800 space-y-1">
+              <p>This returns the team to Pending and removes this payment from verified totals. The original approval and this correction remain in the history.</p>
+              <p className="font-semibold">This does not issue a refund.</p>
+            </div>
+            {reverseError && <p role="alert" className="text-xs text-rose-700">{reverseError}</p>}
+            <div>
+              <label htmlFor="reverse-payment-reason" className="block text-xs font-semibold text-slate-700 mb-1">Reason (required)</label>
+              <textarea
+                id="reverse-payment-reason"
+                required
+                maxLength={1000}
+                rows={3}
+                disabled={isReversing}
+                value={reverseReason}
+                onChange={(event) => setReverseReason(event.target.value)}
+                placeholder="Explain why the approval needs to be corrected"
+                className="w-full px-3.5 py-2 rounded-xl border border-slate-200 bg-slate-50 text-xs text-slate-900"
+              />
+            </div>
+            <label className="flex items-start gap-2 text-xs text-slate-700">
+              <input type="checkbox" required checked={reverseConfirmed} disabled={isReversing} onChange={(event) => setReverseConfirmed(event.target.checked)} className="mt-0.5" />
+              <span>I confirm that Team <strong>{reverseTarget.team_id}</strong> should be marked unpaid.</span>
+            </label>
+            <div className="flex justify-end gap-2 border-t border-slate-100 pt-4">
+              <button type="button" disabled={isReversing} onClick={() => setReverseTarget(null)} className="px-4 py-2 text-xs font-semibold rounded-xl text-slate-600 hover:bg-slate-100 disabled:opacity-50">Cancel</button>
+              <button type="submit" disabled={isReversing || !reverseConfirmed || !reverseReason.trim()} className="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-xl bg-rose-600 hover:bg-rose-500 text-white disabled:opacity-50">
+                {isReversing && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                {isReversing ? 'Updating...' : 'Confirm — mark as unpaid'}
               </button>
             </div>
           </form>

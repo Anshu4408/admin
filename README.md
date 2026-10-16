@@ -75,3 +75,14 @@ The UI reads the current administrator from `GET /api/admin/auth/me`.
 Set backend `GOOGLE_CLIENT_ID` to the same OAuth client ID as this panel's
 `VITE_GOOGLE_CLIENT_ID`. Keep `ADMIN_EMAILS` configured on the backend.
 Deploy the matching backend update before using this frontend release.
+
+## Mark an approved QR payment as unpaid
+
+In **QR Codes & UTR → UTR Submissions**, find an approved payment and click
+**Mark as unpaid**. Enter the reason, confirm the team, and submit. The team
+returns to Pending and the QR record shows Unpaid (reversed). Original approval
+and correction details remain visible and are included in CSV exports.
+This corrects registration status and does not issue a refund.
+
+Deploy the matching backend `/api/admin/qr-payments/:id/reverse` endpoint and
+its reversal-field migration before using this action.
