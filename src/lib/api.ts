@@ -1,11 +1,11 @@
 import axios from 'axios';
 import type { ApiResponse, DashboardStats, AdminUser, User, Team, Payment, Pagination, QRCode, QRPayment } from '../types';
 
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:9002';
 
 export const getMediaUrl = (path?: string) => {
   if (!path) return '';
-  if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('data:')) {
+  if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('blob:')) {
     return path;
   }
   return `${API_BASE_URL.replace(/\/+$/, '')}/${path.replace(/^\/+/, '')}`;
@@ -24,16 +24,6 @@ apiClient.interceptors.request.use((config) => {
   const token = localStorage.getItem('tf_admin_token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
-  }
-  const savedUser = localStorage.getItem('tf_admin_user');
-  if (savedUser) {
-    try {
-      const u = JSON.parse(savedUser);
-      if (u?.email) config.headers['X-User-Email'] = u.email;
-      if (u?.admin_id) config.headers['X-User-ID'] = u.admin_id;
-    } catch {
-      // ignore
-    }
   }
   return config;
 });
@@ -59,6 +49,18 @@ apiClient.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+export async function loadPaymentScreenshot(path: string): Promise<string> {
+  if (!path.startsWith('/uploads/qr/')) throw new Error('Invalid payment screenshot path');
+  const response = await apiClient.get(getMediaUrl(path), { responseType: 'blob' });
+  return URL.createObjectURL(response.data);
+}
+
+function csvCell(value: unknown): string {
+  let text = String(value ?? '');
+  if (/^[\s]*[=+@-]/.test(text) || /^[\t\r\n]/.test(text)) text = "'" + text;
+  return `"${text.replace(/"/g, '""')}"`;
+}
 
 export const api = {
   // Auth
@@ -216,76 +218,8 @@ export const api = {
   // Dashboard
   dashboard: {
     getStats: async () => {
-      try {
-        const [qrPaymentsRes, teamsRes, paymentStatsRes] = await Promise.all([
-          apiClient.get<ApiResponse<QRPayment[]>>('/api/admin/qr-payments').catch(() => ({ data: { data: [] } })),
-          apiClient.get<ApiResponse<Team[]>>('/api/team/public').catch(() => ({ data: { data: [] } })),
-          apiClient.get<any>('/api/team/stats/payment').catch(() => ({ data: { count: 0 } })),
-        ]);
-
-        const qrList = Array.isArray(qrPaymentsRes.data?.data) ? qrPaymentsRes.data.data : [];
-        const teamsList = Array.isArray(teamsRes.data?.data) ? teamsRes.data.data : [];
-        const paidCount = qrList.filter((q) => q.status?.toLowerCase() === 'paid').length;
-        const pendingCount = qrList.filter((q) => q.status?.toLowerCase() === 'processing').length;
-        const totalRevenue = qrList
-          .filter((q) => q.status?.toLowerCase() === 'paid')
-          .reduce((sum, q) => sum + (q.amount || 0), 0);
-
-        const recentPayments: Payment[] = qrList.slice(0, 5).map((q) => ({
-          payment_id: `QR-${q.id}`,
-          order_id: q.utr,
-          team_id: q.team_id,
-          amount: q.amount,
-          currency: 'INR',
-          payment_status: q.status?.toUpperCase() === 'PAID' ? 'SUCCESS' : q.status?.toUpperCase() || 'PENDING',
-          transaction_id: q.utr,
-          created_at: q.submitted_at || new Date().toISOString(),
-          updated_at: q.verified_at || q.submitted_at || new Date().toISOString(),
-        }));
-
-        const stats: DashboardStats = {
-          total_users: teamsList.reduce((acc, t) => acc + (t.members?.length || 1), 0),
-          total_teams: teamsList.length || qrList.length,
-          paid_teams: paidCount || (paymentStatsRes.data?.count ?? 0),
-          pending_teams: pendingCount,
-          public_teams: teamsList.length,
-          total_revenue: totalRevenue,
-          users_with_team: teamsList.reduce((acc, t) => acc + (t.members?.length || 1), 0),
-          users_without_team: 0,
-          domain_stats: {},
-          payment_status_stats: {
-            PAID: paidCount,
-            PENDING: pendingCount,
-          },
-          recent_registrations: [],
-          recent_payments: recentPayments,
-        };
-
-        return {
-          success: true,
-          message: 'Stats loaded',
-          data: stats,
-        };
-      } catch {
-        return {
-          success: true,
-          message: 'Stats initialized',
-          data: {
-            total_users: 0,
-            total_teams: 0,
-            paid_teams: 0,
-            pending_teams: 0,
-            public_teams: 0,
-            total_revenue: 0,
-            users_with_team: 0,
-            users_without_team: 0,
-            domain_stats: {},
-            payment_status_stats: {},
-            recent_registrations: [],
-            recent_payments: [],
-          },
-        };
-      }
+      const { data } = await apiClient.get<ApiResponse<DashboardStats>>('/api/admin/stats');
+      return data;
     },
   },
 
@@ -297,18 +231,18 @@ export const api = {
         return data;
       } catch {
         return {
-          success: true,
-          message: 'Users loaded',
+          success: false,
+          message: 'User management is unavailable on the connected backend',
           data: { users: [], pagination: { total: 0, page: 1, limit: 10, pages: 1 } },
         };
       }
     },
     get: async (id: string) => {
-      const { data } = await apiClient.get<ApiResponse<{ user: User; team?: Team }>>(`/api/user/${id}`);
+      const { data } = await apiClient.get<ApiResponse<{ user: User; team?: Team }>>(`/api/admin/users/${encodeURIComponent(id)}`);
       return data;
     },
-    update: async (_id: string, payload: Partial<User>) => {
-      const { data } = await apiClient.put<ApiResponse>(`/api/user/profile`, payload);
+    update: async (id: string, payload: Partial<User>) => {
+      const { data } = await apiClient.put<ApiResponse>(`/api/admin/users/${encodeURIComponent(id)}`, payload);
       return data;
     },
     delete: async (id: string) => {
@@ -326,6 +260,7 @@ export const api = {
       document.body.appendChild(a);
       a.click();
       a.remove();
+      window.URL.revokeObjectURL(url);
     }
   },
 
@@ -333,13 +268,15 @@ export const api = {
   teams: {
     list: async (params?: { search?: string; domain?: string; payment_status?: string; is_public?: string; page?: number; limit?: number }) => {
       try {
-        const { data } = await apiClient.get<ApiResponse<Team[]>>('/api/team/public');
+        const { data } = await apiClient.get<ApiResponse<Team[]>>('/api/admin/teams');
         const teams = Array.isArray(data?.data) ? data.data : [];
         let filtered = teams;
         if (params?.search) {
           const s = params.search.toLowerCase();
           filtered = filtered.filter((t) => t.name?.toLowerCase().includes(s) || t.team_id?.toLowerCase().includes(s));
         }
+        if (params?.domain) filtered = filtered.filter((t) => t.domain === params.domain);
+        if (params?.is_public) filtered = filtered.filter((t) => t.ispublic === (params.is_public === 'true'));
         if (params?.payment_status) {
           filtered = filtered.filter((t) => t.payment_status?.toLowerCase() === params.payment_status?.toLowerCase());
         }
@@ -364,7 +301,7 @@ export const api = {
       }
     },
     get: async (id: string) => {
-      const { data } = await apiClient.get<ApiResponse<Team>>(`/api/team/${id}`);
+      const { data } = await apiClient.get<ApiResponse<Team>>(`/api/admin/teams/${encodeURIComponent(id)}`);
       return data;
     },
     update: async (id: string, payload: Partial<Team>) => {
@@ -373,9 +310,12 @@ export const api = {
     },
     updatePaymentStatus: async (id: string, payment_status: string) => {
       // Direct team payment status update: checks if qr payment exists or team pay endpoint
-      const { data } = await apiClient.patch<ApiResponse>(`/api/admin/teams/${id}/payment-status`, { payment_status }).catch(async () => {
-        return { data: { success: true, message: `Status updated to ${payment_status}` } };
-      });
+      const { data: submissions } = await apiClient.get<ApiResponse<QRPayment[]>>('/api/admin/qr-payments', { params: { status: 'processing' } });
+      const pending = submissions.data?.find((p) => p.team_id === id);
+      if (!submissions.success || !pending) throw new Error('No QR payment is awaiting review for this team');
+      if (payment_status !== 'PAID' && payment_status !== 'Pending' && payment_status !== 'REJECTED') throw new Error('Review QR submissions to approve or reject a payment');
+      const action = payment_status === 'PAID' ? 'approve' : 'reject';
+      const { data } = await apiClient.post<ApiResponse>(`/api/admin/qr-payments/${pending.id}/${action}`);
       return data;
     },
     addMember: async (teamId: string, payload: { user_id?: string; email?: string }) => {
@@ -396,13 +336,13 @@ export const api = {
     },
     downloadCsv: async () => {
       try {
-        const { data } = await apiClient.get<ApiResponse<Team[]>>('/api/team/public');
+        const { data } = await apiClient.get<ApiResponse<Team[]>>('/api/admin/teams');
         const teams = Array.isArray(data?.data) ? data.data : [];
         const rows = [
           ['Team ID', 'Name', 'Leader', 'Contact', 'Domain', 'Payment Status', 'Created At'],
           ...teams.map((t) => [t.team_id, t.name, t.leader, t.contact, t.domain || '', t.payment_status, t.created_at]),
         ];
-        const csv = rows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
+        const csv = rows.map((r) => r.map(csvCell).join(',')).join('\n');
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -411,6 +351,7 @@ export const api = {
         document.body.appendChild(a);
         a.click();
         a.remove();
+      window.URL.revokeObjectURL(url);
       } catch (err) {
         console.error('Failed to export teams CSV', err);
       }
@@ -496,7 +437,7 @@ export const api = {
             q.admin_note || '',
           ]),
         ];
-        const csv = rows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
+        const csv = rows.map((r) => r.map(csvCell).join(',')).join('\n');
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -505,6 +446,7 @@ export const api = {
         document.body.appendChild(a);
         a.click();
         a.remove();
+      window.URL.revokeObjectURL(url);
       } catch (err) {
         console.error('Failed to export payments CSV', err);
       }

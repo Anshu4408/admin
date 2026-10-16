@@ -62,6 +62,7 @@ export interface Payment {
 }
 
 export interface DashboardStats {
+  team_cap: number;
   total_users: number;
   total_teams: number;
   paid_teams: number;

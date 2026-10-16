@@ -144,7 +144,7 @@ export const Dashboard: React.FC = () => {
                   <CreditCard className="w-4 h-4 text-emerald-600" />
                   Payment Summary
                 </h3>
-                <span className="text-xs text-slate-400 font-medium">Team Cap: 50</span>
+                <span className="text-xs text-slate-400 font-medium">Team Cap: {stats?.team_cap ?? "..."}</span>
               </div>
 
               <div className="grid grid-cols-2 gap-4 my-2">

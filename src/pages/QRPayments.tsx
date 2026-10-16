@@ -21,7 +21,7 @@ import { Navbar } from '../components/Navbar';
 import { Modal } from '../components/Modal';
 import { StatusBadge } from '../components/Badge';
 import { EmptyState } from '../components/EmptyState';
-import { api, getMediaUrl } from '../lib/api';
+import { api, getMediaUrl, loadPaymentScreenshot } from '../lib/api';
 import type { QRCode, QRPayment } from '../types';
 
 export const QRPaymentsPage: React.FC = () => {
@@ -66,6 +66,11 @@ export const QRPaymentsPage: React.FC = () => {
 
   // Image Lightbox Modal
   const [lightboxImage, setLightboxImage] = useState<{ url: string; title: string } | null>(null);
+
+  useEffect(() => {
+    const url = lightboxImage?.url;
+    return () => { if (url?.startsWith('blob:')) URL.revokeObjectURL(url); };
+  }, [lightboxImage]);
 
   const showNotification = (type: 'success' | 'error', message: string) => {
     setNotification({ type, message });
@@ -698,12 +703,12 @@ export const QRPaymentsPage: React.FC = () => {
                             <td className="py-3.5 px-4">
                               {sub.screenshot_url ? (
                                 <button
-                                  onClick={() =>
-                                    setLightboxImage({
-                                      url: getMediaUrl(sub.screenshot_url),
-                                      title: `Payment Proof - Team ${sub.team_id} (UTR: ${sub.utr})`,
-                                    })
-                                  }
+                                  onClick={async () => {
+                                    try {
+                                      const url = await loadPaymentScreenshot(sub.screenshot_url!);
+                                      setLightboxImage({ url, title: `Payment Proof - Team ${sub.team_id} (UTR: ${sub.utr})` });
+                                    } catch { showNotification('error', 'Could not load payment screenshot'); }
+                                  }}
                                   className="flex items-center gap-1.5 text-brand-600 hover:text-brand-700 bg-brand-50 px-2.5 py-1 rounded-lg border border-brand-200/60 font-semibold transition-colors"
                                 >
                                   <Eye className="w-3.5 h-3.5" />
