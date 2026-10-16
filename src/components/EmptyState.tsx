@@ -18,12 +18,12 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
   action,
 }) => {
   return (
-    <div className="flex flex-col items-center justify-center p-12 text-center rounded-2xl border border-dashed border-slate-200 bg-slate-50/50">
-      <div className="p-3.5 mb-3.5 rounded-2xl bg-white border border-slate-200 text-slate-400 shadow-soft">
+    <div className="flex flex-col items-center justify-center p-12 text-center rounded-xl border border-dashed border-neutral-800 bg-neutral-950/50">
+      <div className="p-3.5 mb-3.5 rounded-xl bg-neutral-900 border border-neutral-800 text-neutral-400">
         <Icon className="w-7 h-7" />
       </div>
-      <h4 className="text-sm font-bold text-slate-800 mb-1">{title}</h4>
-      <p className="text-xs text-slate-500 max-w-sm mb-5 leading-relaxed">{description}</p>
+      <h4 className="text-sm font-semibold text-neutral-100 mb-1">{title}</h4>
+      <p className="text-xs text-neutral-400 max-w-sm mb-5 leading-relaxed">{description}</p>
       {action && (
         <button
           onClick={action.onClick}

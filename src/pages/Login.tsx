@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GoogleLogin } from '@react-oauth/google';
-import { Shield, Sparkles, AlertCircle, Lock, Users, Layers, CreditCard, Loader2 } from 'lucide-react';
+import { Lock, Loader2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export const Login: React.FC = () => {
@@ -40,113 +40,27 @@ export const Login: React.FC = () => {
   const hasGoogleClientId = !!import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex flex-col justify-center items-center p-6 relative overflow-hidden font-sans">
-      {/* Subtle background glow accents */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-brand-100/50 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-10 right-10 w-80 h-80 bg-indigo-100/50 rounded-full blur-3xl pointer-events-none" />
-
-      <div className="w-full max-w-md relative z-10">
-        {/* Top Brand Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-tr from-brand-600 to-teal-500 p-0.5 shadow-lg shadow-brand-500/20 mb-4">
-            <div className="w-full h-full bg-white rounded-[14px] flex items-center justify-center">
-              <Shield className="w-7 h-7 text-brand-600" />
-            </div>
-          </div>
-
-          <h1 className="text-2xl font-extrabold tracking-tight text-slate-900">
-            TransfiNITTe Admin
-          </h1>
-          <p className="text-xs text-slate-500 mt-1 font-medium">
-            Restricted Operations & Event Administration Portal
-          </p>
-        </div>
-
-        {/* Login Card */}
-        <div className="bg-white border border-slate-200/80 rounded-2xl p-8 shadow-card relative">
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 mb-6 text-xs text-slate-600 font-medium">
-            <Lock className="w-3.5 h-3.5 text-brand-600" />
-            <span>Role-Based Access Control (RBAC) Enforced</span>
-          </div>
-
-          {error && (
-            <div className="mb-6 p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-start gap-3">
-              <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
-              <div>
-                <p className="font-bold mb-0.5">Authorization Error</p>
-                <p className="text-rose-600 leading-relaxed font-medium">{error}</p>
-              </div>
-            </div>
-          )}
-
-          {/* Google Sign In Section */}
-          <div className="space-y-4">
-            <p className="text-xs font-semibold text-slate-700 text-center">
-              Sign in with your authorized Google Account
-            </p>
-
-            {loading && (
-              <div className="flex items-center justify-center gap-2 py-1 text-xs text-brand-600 font-semibold animate-pulse">
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                <span>Authorizing administrator credentials...</span>
-              </div>
-            )}
-
-            {hasGoogleClientId ? (
-              <div className="flex justify-center w-full py-2">
-                <GoogleLogin
-                  onSuccess={handleGoogleSuccess}
-                  onError={handleGoogleError}
-                  useOneTap
-                  theme="outline"
-                  shape="pill"
-                  size="large"
-                  text="signin_with"
-                  width="360"
-                />
-              </div>
-            ) : (
-              <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-800">
-                <p className="font-bold mb-1">Google OAuth Client ID Required</p>
-                <p className="text-amber-700 leading-relaxed font-medium">
-                  Please set <code className="px-1 py-0.5 bg-white border border-amber-200 rounded font-mono text-amber-900">VITE_GOOGLE_CLIENT_ID</code> in <code className="font-mono">admin/.env</code> and restart the frontend server.
-                </p>
-              </div>
-            )}
-
-            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-[11px] text-slate-500 text-center font-medium">
-              Only whitelisted administrator email addresses can access this portal.
-            </div>
-
-
-          </div>
-
-          <div className="mt-8 pt-6 border-t border-slate-100">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-brand-600" />
-              Management Modules
-            </h4>
-            <div className="grid grid-cols-3 gap-2 text-[11px] text-slate-600 font-semibold">
-              <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex flex-col items-center text-center">
-                <Users className="w-4 h-4 text-brand-600 mb-1" />
-                <span>Users</span>
-              </div>
-              <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex flex-col items-center text-center">
-                <Layers className="w-4 h-4 text-indigo-600 mb-1" />
-                <span>Teams</span>
-              </div>
-              <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex flex-col items-center text-center">
-                <CreditCard className="w-4 h-4 text-emerald-600 mb-1" />
-                <span>Payments</span>
-              </div>
-            </div>
+    <div className="flex min-h-dvh flex-col bg-neutral-950 text-neutral-200">
+      <header className="flex h-20 items-center gap-3 border-b border-neutral-800 px-5 sm:px-10">
+        <img src="/motif.svg" alt="" className="h-8 w-11 object-contain" />
+        <span className="text-sm">TransfiNITTe <span className="ml-2 text-neutral-500">/ Admin</span></span>
+      </header>
+      <main className="flex flex-1 items-center justify-center px-4 py-12">
+        <div className="w-full max-w-md">
+          <p className="mb-4 text-xs uppercase tracking-[0.2em] text-neutral-500">Event administration / 2026</p>
+          <h1 className="text-3xl font-medium tracking-tight text-white">Welcome back.</h1>
+          <p className="mt-3 text-sm leading-relaxed text-neutral-400">Sign in to manage participants, teams and payment reviews.</p>
+          <div className="mt-8 rounded-xl border border-neutral-800 bg-neutral-900/60 p-5 sm:p-7">
+            <div className="mb-6 flex items-center gap-2 text-xs text-neutral-400"><Lock className="h-4 w-4" /> Administrator access</div>
+            {error && <div role="alert" className="mb-5 rounded-lg border border-rose-500/30 bg-rose-500/10 p-3 text-xs leading-relaxed text-rose-300">{error}</div>}
+            {loading ? <div role="status" className="flex items-center justify-center gap-2 py-4 text-sm"><Loader2 className="h-4 w-4 animate-spin" />Signing in…</div> : hasGoogleClientId ? (
+              <div className="flex min-h-11 justify-center"><GoogleLogin onSuccess={handleGoogleSuccess} onError={handleGoogleError} theme="filled_black" shape="rectangular" size="large" text="signin_with" /></div>
+            ) : <p role="alert" className="text-sm text-amber-300">Google sign-in is unavailable. Please contact the event team.</p>}
+            <p className="mt-6 border-t border-neutral-800 pt-5 text-xs leading-relaxed text-neutral-500">Use the Google account approved for administrator access.</p>
           </div>
         </div>
-
-        <p className="text-center text-[11px] text-slate-400 font-medium mt-6">
-          TransfiNITTe 2026 &bull; Department of Technical Affairs
-        </p>
-      </div>
+      </main>
+      <footer className="border-t border-neutral-800 p-5 text-center text-xs text-neutral-500">TransfiNITTe 2026 · Technical Council, NIT Trichy</footer>
     </div>
   );
 };

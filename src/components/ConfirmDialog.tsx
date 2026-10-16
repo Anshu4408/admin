@@ -28,11 +28,11 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={title} maxWidth="sm">
       <div className="flex items-start gap-3.5">
-        <div className={`p-2.5 rounded-xl ${isDanger ? 'bg-rose-50 text-rose-600 border border-rose-100' : 'bg-amber-50 text-amber-600 border border-amber-100'}`}>
+        <div className={`p-2.5 rounded-xl ${isDanger ? 'bg-rose-500/10 text-rose-400 border border-rose-500/25' : 'bg-amber-500/10 text-amber-400 border border-amber-500/25'}`}>
           <AlertTriangle className="w-5 h-5" />
         </div>
         <div className="flex-1">
-          <p className="text-xs text-slate-600 leading-relaxed">{message}</p>
+          <p className="text-xs text-neutral-300 leading-relaxed">{message}</p>
         </div>
       </div>
 
@@ -41,7 +41,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
           type="button"
           onClick={onClose}
           disabled={isLoading}
-          className="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-colors disabled:opacity-50"
+          className="px-4 py-2 text-xs font-semibold text-neutral-300 hover:text-neutral-50 hover:bg-neutral-800 rounded-xl transition-colors disabled:opacity-50"
         >
           {cancelText}
         </button>

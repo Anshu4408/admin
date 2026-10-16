@@ -10,9 +10,9 @@ export const Layout: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center gap-3">
+      <div className="min-h-screen bg-neutral-950 flex flex-col items-center justify-center gap-3">
         <Loader2 className="w-8 h-8 text-brand-600 animate-spin" />
-        <p className="text-sm font-semibold text-slate-600">Verifying administrator authorization...</p>
+        <p className="text-sm font-semibold text-neutral-300">Verifying administrator authorization...</p>
       </div>
     );
   }
@@ -22,9 +22,9 @@ export const Layout: React.FC = () => {
   }
 
   return (
-    <div className="flex min-h-screen bg-slate-50 text-slate-800 selection:bg-brand-500 selection:text-white font-sans">
+    <div className="min-h-screen bg-neutral-950 text-neutral-200 font-sans lg:pl-60">
       <Sidebar />
-      <div className="flex-1 flex flex-col min-w-0 overflow-x-hidden">
+      <div className="admin-content flex min-w-0 flex-col">
         <Outlet />
       </div>
     </div>

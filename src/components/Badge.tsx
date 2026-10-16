@@ -8,13 +8,13 @@ interface BadgeProps {
 
 export const Badge: React.FC<BadgeProps> = ({ children, variant = 'slate', size = 'sm' }) => {
   const variantClasses = {
-    emerald: 'bg-emerald-50 text-emerald-700 border-emerald-200/80',
-    amber: 'bg-amber-50 text-amber-700 border-amber-200/80',
-    rose: 'bg-rose-50 text-rose-700 border-rose-200/80',
-    indigo: 'bg-indigo-50 text-indigo-700 border-indigo-200/80',
-    sky: 'bg-sky-50 text-sky-700 border-sky-200/80',
-    slate: 'bg-slate-100 text-slate-700 border-slate-200',
-    violet: 'bg-purple-50 text-purple-700 border-purple-200/80',
+    emerald: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/25',
+    amber: 'bg-amber-500/10 text-amber-400 border-amber-500/25',
+    rose: 'bg-rose-500/10 text-rose-400 border-rose-500/25',
+    indigo: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/25',
+    sky: 'bg-sky-500/10 text-sky-400 border-sky-500/25',
+    slate: 'bg-neutral-800 text-neutral-200 border-neutral-800',
+    violet: 'bg-purple-500/10 text-purple-400 border-purple-500/25',
   };
 
   const sizeClasses = {
@@ -34,7 +34,7 @@ export const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
   if (s === 'paid' || s === 'success') {
     return (
       <Badge variant="emerald">
-        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
         {status}
       </Badge>
     );
@@ -42,7 +42,7 @@ export const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
   if (s === 'processing') {
     return (
       <Badge variant="amber">
-        <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+        <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
         Processing
       </Badge>
     );

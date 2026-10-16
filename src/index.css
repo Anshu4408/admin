@@ -1,40 +1,53 @@
+@font-face {
+  font-family: 'Geist Mono';
+  src: url('/fonts/GeistMono.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
-  body {
-    @apply bg-slate-50 text-slate-800 antialiased font-sans;
-    background-color: #f8fafc;
-    background-image: 
-      radial-gradient(at 10% 10%, rgba(13, 148, 136, 0.03) 0px, transparent 50%),
-      radial-gradient(at 90% 90%, rgba(99, 102, 241, 0.03) 0px, transparent 50%);
-    background-attachment: fixed;
-  }
-
-  /* Custom light scrollbar */
-  ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
-  ::-webkit-scrollbar-track {
-    background: #f1f5f9;
-  }
-  ::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
-    border-radius: 9999px;
-  }
-  ::-webkit-scrollbar-thumb:hover {
-    background: #94a3b8;
+  :root { color-scheme: dark; }
+  body { @apply m-0 bg-neutral-950 text-neutral-200 antialiased font-sans; }
+  #root { min-height: 100dvh; }
+  * { scrollbar-width: thin; scrollbar-color: #404040 #0a0a0a; }
+  ::selection { background: #e5e5e5; color: #0a0a0a; }
+  :focus-visible { outline: 2px solid #d4d4d4; outline-offset: 3px; }
+  button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
+  button { touch-action: manipulation; }
+  button:disabled { cursor: not-allowed; }
+  input, select, textarea { max-width: 100%; }
+  input:not([type='checkbox']):not([type='radio']):not([type='file']), select { min-height: 42px; }
+  textarea { min-height: 100px; }
+  table { border-collapse: collapse; }
+  th { white-space: nowrap; }
+  td { overflow-wrap: anywhere; }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
   }
 }
 
-@layer utilities {
-  .light-card {
-    @apply bg-white border border-slate-200/80 rounded-2xl shadow-soft;
-  }
-  
-  .light-card-hover {
-    @apply transition-all duration-200 hover:border-slate-300 hover:shadow-card;
-  }
+/* The registration site's primary action uses a light surface and dark text. */
+.bg-brand-600 { color: #0a0a0a; }
+.bg-brand-600:hover { background-color: #fff; }
+.admin-toolbar button { min-height: 40px; }
+.admin-toolbar > div { flex-wrap: wrap; }
+.admin-content main > * { min-width: 0; }
+.admin-content .overflow-x-auto { max-width: 100%; }
+@media (max-width: 639px) {
+  .admin-content main > .flex.items-center.justify-between { flex-wrap: wrap; gap: 1rem; }
+  .admin-content main .flex.items-center.gap-2.border-b { overflow-x: auto; }
+  .admin-content main .flex.items-center.gap-2.border-b > button { flex-shrink: 0; }
+  .admin-content main .flex.flex-wrap > select { flex: 1; min-width: 130px; }
+  .admin-content main .flex.items-center.justify-between.border-t { flex-wrap: wrap; gap: 1rem; }
+  .admin-content main button:not([title]) { min-height: 40px; }
+}
+.admin-content td button { min-height: 36px; min-width: 36px; }
+.admin-content td { max-width: 24rem; }
+@media (max-width: 639px) {
+  input, select, textarea { font-size: 16px !important; }
 }

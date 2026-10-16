@@ -189,12 +189,12 @@ export const TeamsPage: React.FC = () => {
   return (
     <div className="flex-1 flex flex-col min-h-screen">
       <Navbar
-        title="Team Operations"
-        subtitle={`Managing ${pagination.total} registered squads across tracks`}
+        title="Teams"
+        subtitle={`${pagination.total} registered teams`}
         actions={
           <button
             onClick={() => api.teams.downloadCsv()}
-            className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-xs font-semibold text-white transition-all shadow-soft"
+            className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-xs font-semibold text-white transition-all"
           >
             <Download className="w-3.5 h-3.5" />
             <span>Export CSV</span>
@@ -202,13 +202,13 @@ export const TeamsPage: React.FC = () => {
         }
       />
 
-      <main className="flex-1 p-8 max-w-7xl w-full mx-auto space-y-6">
+      <main className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 max-w-[1600px] w-full mx-auto space-y-6">
         {notification && (
           <div
             className={`p-4 rounded-xl text-xs font-semibold flex items-center justify-between border ${
               notification.type === 'success'
-                ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
-                : 'bg-rose-50 border-rose-200 text-rose-700'
+                ? 'bg-emerald-500/10 border-emerald-500/25 text-emerald-400'
+                : 'bg-rose-500/10 border-rose-500/25 text-rose-400'
             }`}
           >
             <span>{notification.message}</span>
@@ -219,20 +219,20 @@ export const TeamsPage: React.FC = () => {
         )}
 
         {/* Filter Bar */}
-        <div className="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-soft flex flex-col md:flex-row gap-3 items-center justify-between">
+        <div className="bg-neutral-900 border border-neutral-800/80 rounded-xl p-4 flex flex-col md:flex-row gap-3 items-center justify-between">
           <div className="relative flex-1 w-full">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-neutral-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by squad name, team ID code, or leader name..."
-              className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-colors"
+              placeholder="Search teams, IDs or leaders…"
+              className="w-full pl-10 pr-4 py-2 bg-neutral-950 border border-neutral-800 rounded-xl text-xs text-neutral-100 placeholder-neutral-400 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-colors"
             />
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5 w-full md:w-auto">
-            <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
+            <div className="flex items-center gap-1.5 text-xs text-neutral-400 font-medium">
               <Filter className="w-3.5 h-3.5" />
               <span>Filters:</span>
             </div>
@@ -241,7 +241,7 @@ export const TeamsPage: React.FC = () => {
             <select
               value={paymentFilter}
               onChange={(e) => setPaymentFilter(e.target.value)}
-              className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-700 focus:outline-none focus:border-brand-500 font-medium"
+              className="px-3 py-2 bg-neutral-950 border border-neutral-800 rounded-xl text-xs text-neutral-200 focus:outline-none focus:border-brand-500 font-medium"
             >
               <option value="">All Payment Statuses</option>
               <option value="Paid">Paid / Verified</option>
@@ -253,7 +253,7 @@ export const TeamsPage: React.FC = () => {
             <select
               value={visibilityFilter}
               onChange={(e) => setVisibilityFilter(e.target.value)}
-              className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-700 focus:outline-none focus:border-brand-500 font-medium"
+              className="px-3 py-2 bg-neutral-950 border border-neutral-800 rounded-xl text-xs text-neutral-200 focus:outline-none focus:border-brand-500 font-medium"
             >
               <option value="">All Visibility</option>
               <option value="true">Public</option>
@@ -268,7 +268,7 @@ export const TeamsPage: React.FC = () => {
                   setPaymentFilter('');
                   setVisibilityFilter('');
                 }}
-                className="px-3 py-2 text-xs font-semibold text-slate-500 hover:text-slate-800 rounded-xl hover:bg-slate-100 transition-colors"
+                className="px-3 py-2 text-xs font-semibold text-neutral-400 hover:text-neutral-100 rounded-xl hover:bg-neutral-800 transition-colors"
               >
                 Clear
               </button>
@@ -277,10 +277,11 @@ export const TeamsPage: React.FC = () => {
         </div>
 
         {/* Teams Table */}
-        <div className="bg-white border border-slate-200/80 rounded-2xl shadow-soft overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50 text-slate-600 border-b border-slate-200 uppercase tracking-wider text-[11px] font-bold">
+        <div className="bg-neutral-900 border border-neutral-800/80 rounded-xl overflow-hidden">
+          <p className="border-b border-neutral-800 px-4 py-2 text-xs text-neutral-500 sm:hidden">Scroll sideways to see all columns and actions.</p>
+          <div className="overflow-x-auto overscroll-x-contain" role="region" aria-label="Scrollable records" tabIndex={0}>
+            <table className="min-w-[740px] w-full text-left text-xs">
+              <thead className="bg-neutral-950 text-neutral-300 border-b border-neutral-800 uppercase tracking-wider text-xs font-semibold">
                 <tr>
                   <th className="py-3.5 px-5">Team Name & Code</th>
                   <th className="py-3.5 px-4">Leader</th>
@@ -292,10 +293,10 @@ export const TeamsPage: React.FC = () => {
                 </tr>
               </thead>
 
-              <tbody className="divide-y divide-slate-100 text-slate-700">
+              <tbody className="divide-y divide-neutral-800 text-neutral-200">
                 {loading ? (
                   <tr>
-                    <td colSpan={7} className="py-12 text-center text-slate-500">
+                    <td colSpan={7} className="py-12 text-center text-neutral-400">
                       <div className="flex flex-col items-center justify-center gap-2">
                         <Loader2 className="w-6 h-6 text-brand-600 animate-spin" />
                         <span className="font-medium">Loading squad roster...</span>
@@ -316,25 +317,25 @@ export const TeamsPage: React.FC = () => {
                   teams.map((team) => {
                     const memberCount = team.members?.length || 0;
                     return (
-                      <tr key={team.team_id} className="hover:bg-slate-50/80 transition-colors">
+                      <tr key={team.team_id} className="hover:bg-neutral-950/80 transition-colors">
                         <td className="py-3.5 px-5">
                           <div>
                             <p
                               onClick={() => loadTeamDetails(team.team_id)}
                               title="Click to inspect and manage squad roster"
-                              className="font-bold text-slate-900 text-sm hover:text-brand-600 cursor-pointer transition-colors"
+                              className="font-semibold text-neutral-50 text-sm hover:text-brand-600 cursor-pointer transition-colors"
                             >
                               {team.name}
                             </p>
                             <div className="flex items-center gap-1.5 mt-0.5">
-                              <span className="font-mono text-[11px] text-slate-500 font-medium">{team.team_id}</span>
+                              <span className="font-mono text-xs text-neutral-400 font-medium">{team.team_id}</span>
                               <button
                                 onClick={() => copyToClipboard(team.team_id)}
                                 title="Copy Team ID"
-                                className="p-0.5 text-slate-400 hover:text-brand-600 transition-colors"
+                                className="p-0.5 text-neutral-400 hover:text-brand-600 transition-colors"
                               >
                                 {copiedTeamId === team.team_id ? (
-                                  <Check className="w-3 h-3 text-emerald-600" />
+                                  <Check className="w-3 h-3 text-emerald-400" />
                                 ) : (
                                   <Copy className="w-3 h-3" />
                                 )}
@@ -347,8 +348,8 @@ export const TeamsPage: React.FC = () => {
                           <div className="flex items-center gap-1.5">
                             <Crown className="w-3.5 h-3.5 text-amber-500 shrink-0" />
                             <div>
-                              <p className="font-semibold text-slate-800">{team.leader || 'Unassigned'}</p>
-                              {team.contact && <p className="text-[10px] text-slate-500">{team.contact}</p>}
+                              <p className="font-semibold text-neutral-100">{team.leader || 'Unassigned'}</p>
+                              {team.contact && <p className="text-xs text-neutral-400">{team.contact}</p>}
                             </div>
                           </div>
                         </td>
@@ -361,8 +362,8 @@ export const TeamsPage: React.FC = () => {
                           <span
                             className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
                               memberCount >= 3
-                                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                                : 'bg-amber-50 text-amber-700 border border-amber-200'
+                                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/25'
+                                : 'bg-amber-500/10 text-amber-400 border border-amber-500/25'
                             }`}
                           >
                             {memberCount} / 5 members
@@ -377,11 +378,11 @@ export const TeamsPage: React.FC = () => {
 
                         <td className="py-3.5 px-4">
                           {team.ispublic ? (
-                            <span className="inline-flex items-center gap-1 text-[11px] text-emerald-700 font-semibold">
+                            <span className="inline-flex items-center gap-1 text-xs text-emerald-400 font-semibold">
                               <Globe className="w-3 h-3" /> Public
                             </span>
                           ) : (
-                            <span className="inline-flex items-center gap-1 text-[11px] text-slate-500 font-semibold">
+                            <span className="inline-flex items-center gap-1 text-xs text-neutral-400 font-semibold">
                               <Lock className="w-3 h-3" /> Private
                             </span>
                           )}
@@ -401,14 +402,14 @@ export const TeamsPage: React.FC = () => {
                                 });
                               }}
                               title="Edit details"
-                              className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+                              className="p-1.5 rounded-lg text-neutral-400 hover:text-indigo-400 hover:bg-indigo-500/10 transition-colors"
                             >
                               <Edit2 className="w-3.5 h-3.5" />
                             </button>
                             <button
                               onClick={() => setDeletingTeam(team)}
                               title="Disband squad"
-                              className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                              className="p-1.5 rounded-lg text-neutral-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>
@@ -424,18 +425,18 @@ export const TeamsPage: React.FC = () => {
 
           {/* Pagination Footer */}
           {pagination.total > 0 && (
-            <div className="p-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500 font-medium">
+            <div className="p-4 border-t border-neutral-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-neutral-400 font-medium">
               <span>
-                Showing <strong className="text-slate-900 font-bold">{(pagination.page - 1) * pagination.limit + 1}</strong> to{' '}
-                <strong className="text-slate-900 font-bold">{Math.min(pagination.page * pagination.limit, pagination.total)}</strong> of{' '}
-                <strong className="text-slate-900 font-bold">{pagination.total}</strong> squads
+                Showing <strong className="text-neutral-50 font-semibold">{(pagination.page - 1) * pagination.limit + 1}</strong> to{' '}
+                <strong className="text-neutral-50 font-semibold">{Math.min(pagination.page * pagination.limit, pagination.total)}</strong> of{' '}
+                <strong className="text-neutral-50 font-semibold">{pagination.total}</strong> squads
               </span>
 
               <div className="flex items-center gap-1.5">
                 <button
                   onClick={() => fetchTeams(pagination.page - 1)}
                   disabled={pagination.page <= 1}
-                  className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors font-semibold"
+                  className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-neutral-800 bg-neutral-900 text-neutral-200 hover:bg-neutral-950 disabled:opacity-40 disabled:cursor-not-allowed transition-colors font-semibold"
                 >
                   <ChevronLeft className="w-3.5 h-3.5" />
                   <span>Previous</span>
@@ -448,13 +449,13 @@ export const TeamsPage: React.FC = () => {
                       const showEllipsisBefore = idx > 0 && p - arr[idx - 1] > 1;
                       return (
                         <React.Fragment key={p}>
-                          {showEllipsisBefore && <span className="px-1 text-slate-400">...</span>}
+                          {showEllipsisBefore && <span className="px-1 text-neutral-400">...</span>}
                           <button
                             onClick={() => fetchTeams(p)}
                             className={`min-w-8 h-8 px-2.5 rounded-lg text-xs font-semibold transition-colors ${
                               p === pagination.page
-                                ? 'bg-brand-600 text-white shadow-soft'
-                                : 'text-slate-600 hover:bg-slate-100'
+                                ? 'bg-brand-600 text-white '
+                                : 'text-neutral-300 hover:bg-neutral-800'
                             }`}
                           >
                             {p}
@@ -467,7 +468,7 @@ export const TeamsPage: React.FC = () => {
                 <button
                   onClick={() => fetchTeams(pagination.page + 1)}
                   disabled={pagination.page >= pagination.pages}
-                  className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors font-semibold"
+                  className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-neutral-800 bg-neutral-900 text-neutral-200 hover:bg-neutral-950 disabled:opacity-40 disabled:cursor-not-allowed transition-colors font-semibold"
                 >
                   <span>Next</span>
                   <ChevronRight className="w-3.5 h-3.5" />
@@ -489,33 +490,33 @@ export const TeamsPage: React.FC = () => {
         >
           <div className="space-y-6">
             {/* Meta tags summary */}
-            <div className="grid grid-cols-3 gap-3 p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs">
+            <div className="grid grid-cols-3 gap-3 p-3.5 rounded-xl bg-neutral-950 border border-neutral-800 text-xs">
               <div>
-                <span className="text-slate-500 block text-[10px] uppercase font-bold">Payment</span>
+                <span className="text-neutral-400 block text-xs uppercase font-semibold">Payment</span>
                 <StatusBadge status={activeTeam.payment_status} />
               </div>
               <div>
-                <span className="text-slate-500 block text-[10px] uppercase font-bold">Contact</span>
-                <span className="font-semibold text-slate-800">{activeTeam.contact || 'None'}</span>
+                <span className="text-neutral-400 block text-xs uppercase font-semibold">Contact</span>
+                <span className="font-semibold text-neutral-100">{activeTeam.contact || 'None'}</span>
               </div>
               <div>
-                <span className="text-slate-500 block text-[10px] uppercase font-bold">Visibility</span>
-                <span className="font-semibold text-slate-800">{activeTeam.ispublic ? 'Public' : 'Private'}</span>
+                <span className="text-neutral-400 block text-xs uppercase font-semibold">Visibility</span>
+                <span className="font-semibold text-neutral-100">{activeTeam.ispublic ? 'Public' : 'Private'}</span>
               </div>
             </div>
 
             {/* Problem Statement */}
             {activeTeam.problem_statement && (
-              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
-                <h5 className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">Problem Statement</h5>
-                <p className="text-xs text-slate-700 leading-relaxed font-medium">{activeTeam.problem_statement}</p>
+              <div className="p-4 rounded-xl bg-neutral-950 border border-neutral-800">
+                <h5 className="text-xs font-semibold uppercase tracking-wider text-neutral-400 mb-1">Problem Statement</h5>
+                <p className="text-xs text-neutral-200 leading-relaxed font-medium">{activeTeam.problem_statement}</p>
               </div>
             )}
 
             {/* Members Section */}
             <div>
               <div className="flex items-center justify-between mb-3">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900 flex items-center gap-1.5">
+                <h4 className="text-xs font-semibold uppercase tracking-wider text-neutral-50 flex items-center gap-1.5">
                   <LayersIcon className="w-3.5 h-3.5 text-brand-600" />
                   Roster Members ({activeTeam.members?.length || 0} / 5)
                 </h4>
@@ -528,22 +529,22 @@ export const TeamsPage: React.FC = () => {
                     return (
                       <div
                         key={member.user_id}
-                        className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between"
+                        className="p-3 rounded-xl bg-neutral-950 border border-neutral-800 flex items-center justify-between"
                       >
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-brand-50 border border-brand-100 flex items-center justify-center font-bold text-xs text-brand-700">
+                          <div className="w-8 h-8 rounded-full bg-brand-50 border border-brand-100 flex items-center justify-center font-semibold text-xs text-brand-700">
                             {member.name ? member.name[0].toUpperCase() : 'U'}
                           </div>
                           <div>
                             <div className="flex items-center gap-2">
-                              <p className="text-xs font-bold text-slate-900">{member.name || 'Anonymous'}</p>
+                              <p className="text-xs font-semibold text-neutral-50">{member.name || 'Anonymous'}</p>
                               {isLeader && (
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/25">
                                   <Crown className="w-3 h-3 text-amber-500" /> Leader
                                 </span>
                               )}
                             </div>
-                            <p className="text-[11px] text-slate-500">{member.email} • Roll: {member.roll_number || 'N/A'}</p>
+                            <p className="text-xs text-neutral-400">{member.email} • Roll: {member.roll_number || 'N/A'}</p>
                           </div>
                         </div>
 
@@ -552,7 +553,7 @@ export const TeamsPage: React.FC = () => {
                             <button
                               onClick={() => handleChangeLeader(activeTeam.team_id, member.user_id)}
                               title="Promote to Team Leader"
-                              className="px-2.5 py-1 text-[10px] font-semibold bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-lg transition-colors flex items-center gap-1 shadow-soft"
+                              className="px-2.5 py-1 text-xs font-semibold bg-neutral-900 hover:bg-neutral-800 text-neutral-200 border border-neutral-800 rounded-lg transition-colors flex items-center gap-1"
                             >
                               <Crown className="w-3 h-3 text-amber-500" />
                               Make Leader
@@ -561,7 +562,7 @@ export const TeamsPage: React.FC = () => {
                           <button
                             onClick={() => handleRemoveMember(activeTeam.team_id, member.user_id, member.name)}
                             title="Remove from squad"
-                            className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                            className="p-1.5 text-neutral-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors"
                           >
                             <UserMinus className="w-3.5 h-3.5" />
                           </button>
@@ -570,28 +571,28 @@ export const TeamsPage: React.FC = () => {
                     );
                   })
                 ) : (
-                  <p className="text-xs text-slate-400 py-4 text-center">No members currently assigned to this squad.</p>
+                  <p className="text-xs text-neutral-400 py-4 text-center">No members currently assigned to this squad.</p>
                 )}
               </div>
             </div>
 
             {/* Add Member form */}
             {(activeTeam.members?.length || 0) < 5 && (
-              <form onSubmit={handleAddMember} className="pt-3 border-t border-slate-100">
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Add Participant by Email</label>
+              <form onSubmit={handleAddMember} className="pt-3 border-t border-neutral-800">
+                <label className="block text-xs font-semibold text-neutral-200 mb-1.5">Add Participant by Email</label>
                 <div className="flex gap-2">
                   <input
                     type="email"
                     value={newMemberEmail}
                     onChange={(e) => setNewMemberEmail(e.target.value)}
                     placeholder="Participant's registered email address..."
-                    className="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-brand-500 font-medium"
+                    className="flex-1 px-3 py-2 bg-neutral-950 border border-neutral-800 rounded-xl text-xs text-neutral-50 placeholder-neutral-400 focus:outline-none focus:border-brand-500 font-medium"
                     required
                   />
                   <button
                     type="submit"
                     disabled={isAddingMember}
-                    className="px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-xs font-semibold transition-all disabled:opacity-50 flex items-center gap-1.5 shadow-soft"
+                    className="px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-xs font-semibold transition-all disabled:opacity-50 flex items-center gap-1.5"
                   >
                     <UserPlus className="w-3.5 h-3.5" />
                     <span>{isAddingMember ? 'Adding...' : 'Add Member'}</span>
@@ -614,54 +615,54 @@ export const TeamsPage: React.FC = () => {
         >
           <form onSubmit={handleSaveEditTeam} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Team Name</label>
+              <label className="block text-xs font-semibold text-neutral-200 mb-1">Team Name</label>
               <input
                 type="text"
                 value={editFormData.name || ''}
                 onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
-                className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:border-brand-500 font-medium"
+                className="w-full px-3.5 py-2 bg-neutral-950 border border-neutral-800 rounded-xl text-xs text-neutral-50 focus:outline-none focus:border-brand-500 font-medium"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Contact Phone</label>
+              <label className="block text-xs font-semibold text-neutral-200 mb-1">Contact Phone</label>
               <input
                 type="text"
                 value={editFormData.contact || ''}
                 onChange={(e) => setEditFormData({ ...editFormData, contact: e.target.value })}
-                className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:border-brand-500 font-medium"
+                className="w-full px-3.5 py-2 bg-neutral-950 border border-neutral-800 rounded-xl text-xs text-neutral-50 focus:outline-none focus:border-brand-500 font-medium"
                 required
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Domain</label>
+                <label className="block text-xs font-semibold text-neutral-200 mb-1">Domain</label>
                 <input
                   type="text"
                   value={editFormData.domain || ''}
                   onChange={(e) => setEditFormData({ ...editFormData, domain: e.target.value })}
-                  className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:border-brand-500 font-medium"
+                  className="w-full px-3.5 py-2 bg-neutral-950 border border-neutral-800 rounded-xl text-xs text-neutral-50 focus:outline-none focus:border-brand-500 font-medium"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Payment Status</label>
+                <label className="block text-xs font-semibold text-neutral-200 mb-1">Payment Status</label>
                 <div className="space-y-2 py-1">
                   <StatusBadge status={editingTeam.payment_status} />
-                  <p className="text-[11px] text-slate-500">Manage payment approvals and rejections in QR Codes &amp; UTR.</p>
+                  <p className="text-xs text-neutral-400">Manage payment approvals and rejections in QR Codes &amp; UTR.</p>
                 </div>
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Problem Statement</label>
+              <label className="block text-xs font-semibold text-neutral-200 mb-1">Problem Statement</label>
               <textarea
                 rows={3}
                 value={editFormData.problem_statement || ''}
                 onChange={(e) => setEditFormData({ ...editFormData, problem_statement: e.target.value })}
-                className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:border-brand-500 font-medium"
+                className="w-full px-3.5 py-2 bg-neutral-950 border border-neutral-800 rounded-xl text-xs text-neutral-50 focus:outline-none focus:border-brand-500 font-medium"
               />
             </div>
 
@@ -671,24 +672,24 @@ export const TeamsPage: React.FC = () => {
                 id="edit-ispublic"
                 checked={editFormData.ispublic || false}
                 onChange={(e) => setEditFormData({ ...editFormData, ispublic: e.target.checked })}
-                className="w-4 h-4 text-brand-600 bg-slate-50 border-slate-300 rounded focus:ring-brand-500"
+                className="w-4 h-4 text-brand-600 bg-neutral-950 border-neutral-700 rounded focus:ring-brand-500"
               />
-              <label htmlFor="edit-ispublic" className="text-xs text-slate-700 font-medium cursor-pointer">
+              <label htmlFor="edit-ispublic" className="text-xs text-neutral-200 font-medium cursor-pointer">
                 Public Squad Listing
               </label>
             </div>
 
-            <div className="pt-4 flex items-center justify-end gap-2 border-t border-slate-100">
+            <div className="pt-4 flex items-center justify-end gap-2 border-t border-neutral-800">
               <button
                 type="button"
                 onClick={() => setEditingTeam(null)}
-                className="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-colors"
+                className="px-4 py-2 text-xs font-semibold text-neutral-300 hover:text-neutral-50 hover:bg-neutral-800 rounded-xl transition-colors"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="px-4 py-2 text-xs font-semibold text-white bg-brand-600 hover:bg-brand-500 rounded-xl transition-all shadow-soft"
+                className="px-4 py-2 text-xs font-semibold text-white bg-brand-600 hover:bg-brand-500 rounded-xl transition-all"
               >
                 Save Changes
               </button>

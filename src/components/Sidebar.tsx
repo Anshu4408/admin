@@ -1,149 +1,45 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import {
-  LayoutDashboard,
-  Users,
-  Layers,
-  CreditCard,
-  QrCode,
-  ShieldCheck,
-  LogOut,
-  ExternalLink,
-} from 'lucide-react';
+import { LayoutDashboard, Users, Layers, CreditCard, QrCode, ShieldCheck, LogOut, Menu, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export const Sidebar: React.FC = () => {
+  const [open, setOpen] = useState(false);
   const { admin, isSuperAdmin, canManageUsers, canManageTeams, canManagePayments, canManageAdmins, logout } = useAuth();
-
   const navItems = [
-    {
-      to: '/',
-      label: 'Overview',
-      icon: LayoutDashboard,
-      allowed: true,
-    },
-    {
-      to: '/users',
-      label: 'Users',
-      icon: Users,
-      allowed: canManageUsers,
-    },
-    {
-      to: '/teams',
-      label: 'Teams',
-      icon: Layers,
-      allowed: canManageTeams,
-    },
-    {
-      to: '/payments',
-      label: 'Payments',
-      icon: CreditCard,
-      allowed: canManagePayments,
-    },
-    {
-      to: '/qr-payments',
-      label: 'QR Codes & UTR',
-      icon: QrCode,
-      allowed: canManagePayments,
-    },
-    {
-      to: '/admins',
-      label: 'Admin RBAC',
-      icon: ShieldCheck,
-      allowed: canManageAdmins || isSuperAdmin,
-    },
+    { to: '/', label: 'Overview', icon: LayoutDashboard, allowed: true },
+    { to: '/users', label: 'Participants', icon: Users, allowed: canManageUsers },
+    { to: '/teams', label: 'Teams', icon: Layers, allowed: canManageTeams },
+    { to: '/payments', label: 'Payments', icon: CreditCard, allowed: canManagePayments },
+    { to: '/qr-payments', label: 'QR codes & UTR', icon: QrCode, allowed: canManagePayments },
+    { to: '/admins', label: 'Administrators', icon: ShieldCheck, allowed: canManageAdmins || isSuperAdmin },
   ];
-
   return (
-    <aside className="w-64 bg-white border-r border-slate-200/80 flex flex-col justify-between h-screen sticky top-0 shadow-soft">
-      {/* Brand Header */}
-      <div>
-        <div className="p-6 pb-5 flex items-center justify-between border-b border-slate-100">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-brand-600 to-teal-500 flex items-center justify-center shadow-md shadow-brand-500/20 text-white font-bold text-base">
-              TF
-            </div>
-            <div>
-              <h1 className="font-bold text-sm tracking-tight text-slate-900 flex items-center gap-1.5">
-                TransfiNITTe
-                <span className="text-[10px] uppercase tracking-wider font-extrabold px-1.5 py-0.5 rounded bg-brand-50 text-brand-700 border border-brand-200/60">
-                  Admin
-                </span>
-              </h1>
-              <p className="text-[11px] text-slate-500 font-medium">Control Center 2025</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Navigation items */}
-        <div className="p-3 space-y-1">
-          <p className="px-3 pt-3 pb-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-            Management
-          </p>
-          {navItems.filter(item => item.allowed).map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              end={item.to === '/'}
-              className={({ isActive }) =>
-                `flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-150 ${
-                  isActive
-                    ? 'bg-brand-50 text-brand-700 border border-brand-200/80 shadow-sm'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                }`
-              }
-            >
-              <item.icon className="w-4 h-4" />
-              <span>{item.label}</span>
+    <aside className="sticky top-0 z-40 w-full border-b border-neutral-800 bg-neutral-950 lg:fixed lg:bottom-0 lg:left-0 lg:w-60 lg:border-b-0 lg:border-r lg:flex lg:flex-col">
+      <div className="flex h-16 shrink-0 items-center justify-between gap-3 border-b border-neutral-800 px-4 lg:h-24 lg:px-6">
+        <NavLink to="/" onClick={() => setOpen(false)} className="flex items-center gap-3" aria-label="TransfiNITTe admin overview">
+          <img src="/motif.svg" alt="" className="h-7 w-10 object-contain" />
+          <div><p className="text-sm font-semibold text-white">TransfiNITTe</p><p className="mt-1 text-[10px] uppercase tracking-[0.16em] text-neutral-400">Administration / 2026</p></div>
+        </NavLink>
+        <button type="button" onClick={() => setOpen(!open)} aria-expanded={open} aria-controls="admin-navigation" aria-label={open ? 'Close navigation' : 'Open navigation'} className="flex h-11 w-11 items-center justify-center rounded-lg border border-neutral-700 text-neutral-200 lg:hidden">
+          {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+        </button>
+      </div>
+      <div id="admin-navigation" className={`${open ? 'flex' : 'hidden'} max-h-[calc(100dvh-4rem)] flex-col overflow-y-auto lg:flex lg:max-h-none lg:flex-1`} onKeyDown={e => { if (e.key === 'Escape') setOpen(false); }}>
+        <nav aria-label="Admin navigation" className="flex-1 space-y-1 p-3 lg:pt-6">
+          <p className="px-3 pb-3 pt-2 text-[10px] uppercase tracking-[0.16em] text-neutral-500">Workspace</p>
+          {navItems.filter(item => item.allowed).map(item => (
+            <NavLink key={item.to} to={item.to} end={item.to === '/'} onClick={() => setOpen(false)} className={({ isActive }) => `flex min-h-11 items-center gap-3 rounded-lg border px-3 text-[13px] transition-colors ${isActive ? 'border-neutral-700 bg-neutral-800 text-white' : 'border-transparent text-neutral-400 hover:bg-neutral-900 hover:text-white'}`}>
+              <item.icon className="h-4 w-4 shrink-0" strokeWidth={1.5} /><span>{item.label}</span>
             </NavLink>
           ))}
-        </div>
-      </div>
-
-      {/* Footer / User Profile */}
-      <div className="p-3 border-t border-slate-100 bg-slate-50/50">
-        <a
-          href="http://localhost:5173"
-          target="_blank"
-          rel="noreferrer"
-          className="flex items-center justify-between px-3 py-2 text-xs font-medium text-slate-600 hover:text-brand-600 hover:bg-white rounded-xl transition-colors mb-2 border border-transparent hover:border-slate-200"
-        >
-          <span className="flex items-center gap-2">
-            <ExternalLink className="w-3.5 h-3.5" />
-            Live Portal Site
-          </span>
-          <span className="text-[11px] text-slate-400">&rarr;</span>
-        </a>
-
-        <div className="p-2.5 rounded-xl bg-white border border-slate-200/80 flex items-center justify-between shadow-soft">
-          <div className="flex items-center gap-2.5 overflow-hidden">
-            {admin?.picture ? (
-              <img
-                src={admin.picture}
-                alt={admin.name || 'Admin'}
-                className="w-8 h-8 rounded-lg object-cover ring-1 ring-slate-200"
-              />
-            ) : (
-              <div className="w-8 h-8 rounded-lg bg-brand-50 border border-brand-100 flex items-center justify-center font-bold text-xs text-brand-700">
-                {admin?.name ? admin.name[0].toUpperCase() : 'A'}
-              </div>
-            )}
-            <div className="overflow-hidden">
-              <p className="text-xs font-semibold text-slate-800 truncate">{admin?.name || 'Administrator'}</p>
-              <div className="flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                <p className="text-[10px] text-slate-500 capitalize font-medium">{admin?.role || 'Admin'}</p>
-              </div>
-            </div>
+        </nav>
+        <div className="space-y-4 border-t border-neutral-800 p-4">
+          <div className="flex min-w-0 items-center gap-3">
+            {admin?.picture ? <img src={admin.picture} alt="" className="h-9 w-9 shrink-0 rounded-full object-cover" /> : <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-neutral-700 text-sm">{admin?.name?.[0]?.toUpperCase() || 'A'}</div>}
+            <div className="min-w-0 flex-1"><p className="truncate text-xs text-neutral-200">{admin?.name || 'Administrator'}</p><p className="mt-1 truncate text-[11px] text-neutral-500" title={admin?.email}>{admin?.email}</p></div>
+            <button onClick={() => logout()} aria-label="Sign out" title="Sign out" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-neutral-400 hover:bg-neutral-800 hover:text-white"><LogOut className="h-4 w-4" /></button>
           </div>
-
-          <button
-            onClick={() => logout()}
-            title="Sign out"
-            className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
-          >
-            <LogOut className="w-4 h-4" />
-          </button>
         </div>
       </div>
     </aside>

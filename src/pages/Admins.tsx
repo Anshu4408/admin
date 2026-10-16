@@ -155,12 +155,12 @@ export const AdminsPage: React.FC = () => {
       <div className="flex-1 flex flex-col min-h-screen">
         <Navbar title="Access Control" subtitle="Role-based permissions" />
         <main className="flex-1 p-8 flex items-center justify-center">
-          <div className="bg-white border border-slate-200 rounded-2xl p-8 max-w-md text-center shadow-soft">
-            <div className="w-12 h-12 rounded-2xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center mx-auto mb-4">
+          <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-8 max-w-md text-center">
+            <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/25 text-amber-400 flex items-center justify-center mx-auto mb-4">
               <Lock className="w-6 h-6" />
             </div>
-            <h3 className="text-base font-bold text-slate-900 mb-1">Restricted Permission Area</h3>
-            <p className="text-xs text-slate-500 leading-relaxed font-medium">
+            <h3 className="text-base font-semibold text-neutral-50 mb-1">Restricted Permission Area</h3>
+            <p className="text-xs text-neutral-400 leading-relaxed font-medium">
               Only Super Administrators or members with RBAC delegation rights can view and adjust admin accounts.
             </p>
           </div>
@@ -177,7 +177,7 @@ export const AdminsPage: React.FC = () => {
         actions={
           <button
             onClick={() => setIsAddModalOpen(true)}
-            className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-xs font-semibold text-white transition-all shadow-soft"
+            className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-xs font-semibold text-white transition-all"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>Add Admin Email</span>
@@ -185,13 +185,13 @@ export const AdminsPage: React.FC = () => {
         }
       />
 
-      <main className="flex-1 p-8 max-w-7xl w-full mx-auto space-y-6">
+      <main className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 max-w-[1600px] w-full mx-auto space-y-6">
         {notification && (
           <div
             className={`p-4 rounded-xl text-xs font-semibold flex items-center justify-between border ${
               notification.type === 'success'
-                ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
-                : 'bg-rose-50 border-rose-200 text-rose-700'
+                ? 'bg-emerald-500/10 border-emerald-500/25 text-emerald-400'
+                : 'bg-rose-500/10 border-rose-500/25 text-rose-400'
             }`}
           >
             <span>{notification.message}</span>
@@ -202,18 +202,19 @@ export const AdminsPage: React.FC = () => {
         )}
 
         {/* Info Banner */}
-        <div className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-soft flex items-start gap-3.5 text-xs">
+        <div className="p-4 rounded-xl bg-neutral-900 border border-neutral-800/80 flex items-start gap-3.5 text-xs">
           <ShieldCheck className="w-5 h-5 text-brand-600 shrink-0 mt-0.5" />
-          <div className="text-slate-600 leading-relaxed font-medium">
-            <strong className="text-slate-900">Google OAuth Whitelist Security:</strong> When an admin signs in with Google, their email address is authenticated and checked against this database list. If not authorized, access is denied.
+          <div className="text-neutral-300 leading-relaxed font-medium">
+            <strong className="text-neutral-50">Google OAuth Whitelist Security:</strong> When an admin signs in with Google, their email address is authenticated and checked against this database list. If not authorized, access is denied.
           </div>
         </div>
 
         {/* Admins Table */}
-        <div className="bg-white border border-slate-200/80 rounded-2xl shadow-soft overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50 text-slate-600 border-b border-slate-200 uppercase tracking-wider text-[11px] font-bold">
+        <div className="bg-neutral-900 border border-neutral-800/80 rounded-xl overflow-hidden">
+          <p className="border-b border-neutral-800 px-4 py-2 text-xs text-neutral-500 sm:hidden">Scroll sideways to see all columns and actions.</p>
+          <div className="overflow-x-auto overscroll-x-contain" role="region" aria-label="Scrollable records" tabIndex={0}>
+            <table className="min-w-[740px] w-full text-left text-xs">
+              <thead className="bg-neutral-950 text-neutral-300 border-b border-neutral-800 uppercase tracking-wider text-xs font-semibold">
                 <tr>
                   <th className="py-3.5 px-5">Administrator</th>
                   <th className="py-3.5 px-4">Role</th>
@@ -226,10 +227,10 @@ export const AdminsPage: React.FC = () => {
                 </tr>
               </thead>
 
-              <tbody className="divide-y divide-slate-100 text-slate-700">
+              <tbody className="divide-y divide-neutral-800 text-neutral-200">
                 {loading ? (
                   <tr>
-                    <td colSpan={8} className="py-12 text-center text-slate-500">
+                    <td colSpan={8} className="py-12 text-center text-neutral-400">
                       <div className="flex flex-col items-center justify-center gap-2">
                         <Loader2 className="w-6 h-6 text-brand-600 animate-spin" />
                         <span className="font-medium">Loading authorized administrators...</span>
@@ -238,7 +239,7 @@ export const AdminsPage: React.FC = () => {
                   </tr>
                 ) : admins.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="py-12 text-center text-slate-500">
+                    <td colSpan={8} className="py-12 text-center text-neutral-400">
                       No admin users found. Click 'Add Admin Email' to whitelist an administrator.
                     </td>
                   </tr>
@@ -248,26 +249,26 @@ export const AdminsPage: React.FC = () => {
                     const isSuper = adm.role === 'superadmin';
 
                     return (
-                      <tr key={adm.admin_id} className="hover:bg-slate-50/80 transition-colors">
+                      <tr key={adm.admin_id} className="hover:bg-neutral-950/80 transition-colors">
                         <td className="py-3.5 px-5">
                           <div className="flex items-center gap-3">
                             {adm.picture ? (
-                              <img src={adm.picture} alt={adm.name} className="w-8 h-8 rounded-full object-cover ring-1 ring-slate-200" />
+                              <img src={adm.picture} alt={adm.name} className="w-8 h-8 rounded-full object-cover ring-1 ring-neutral-800" />
                             ) : (
-                              <div className="w-8 h-8 rounded-full bg-brand-50 border border-brand-100 flex items-center justify-center font-bold text-xs text-brand-700">
+                              <div className="w-8 h-8 rounded-full bg-brand-50 border border-brand-100 flex items-center justify-center font-semibold text-xs text-brand-700">
                                 {adm.name ? adm.name[0].toUpperCase() : 'A'}
                               </div>
                             )}
                             <div>
                               <div className="flex items-center gap-1.5">
-                                <p className="font-bold text-slate-900">{adm.name || 'Administrator'}</p>
+                                <p className="font-semibold text-neutral-50">{adm.name || 'Administrator'}</p>
                                 {isSelf && (
-                                  <span className="text-[10px] px-1.5 py-0.2 rounded bg-brand-50 text-brand-700 font-bold border border-brand-200">
+                                  <span className="text-xs px-1.5 py-0.2 rounded bg-brand-50 text-brand-700 font-semibold border border-brand-200">
                                     You
                                   </span>
                                 )}
                               </div>
-                              <p className="text-[11px] text-slate-500 font-medium">{adm.email}</p>
+                              <p className="text-xs text-neutral-400 font-medium">{adm.email}</p>
                             </div>
                           </div>
                         </td>
@@ -283,11 +284,11 @@ export const AdminsPage: React.FC = () => {
                         {/* User Mgmt */}
                         <td className="py-3.5 px-4 text-center">
                           {isSuper || adm.can_manage_users ? (
-                            <span className="inline-flex p-1 rounded-md bg-emerald-50 text-emerald-600">
+                            <span className="inline-flex p-1 rounded-md bg-emerald-500/10 text-emerald-400">
                               <Check className="w-3.5 h-3.5" />
                             </span>
                           ) : (
-                            <span className="inline-flex p-1 rounded-md bg-slate-100 text-slate-400">
+                            <span className="inline-flex p-1 rounded-md bg-neutral-800 text-neutral-400">
                               <X className="w-3.5 h-3.5" />
                             </span>
                           )}
@@ -296,11 +297,11 @@ export const AdminsPage: React.FC = () => {
                         {/* Team Mgmt */}
                         <td className="py-3.5 px-4 text-center">
                           {isSuper || adm.can_manage_teams ? (
-                            <span className="inline-flex p-1 rounded-md bg-emerald-50 text-emerald-600">
+                            <span className="inline-flex p-1 rounded-md bg-emerald-500/10 text-emerald-400">
                               <Check className="w-3.5 h-3.5" />
                             </span>
                           ) : (
-                            <span className="inline-flex p-1 rounded-md bg-slate-100 text-slate-400">
+                            <span className="inline-flex p-1 rounded-md bg-neutral-800 text-neutral-400">
                               <X className="w-3.5 h-3.5" />
                             </span>
                           )}
@@ -309,11 +310,11 @@ export const AdminsPage: React.FC = () => {
                         {/* Payment Mgmt */}
                         <td className="py-3.5 px-4 text-center">
                           {isSuper || adm.can_manage_payments ? (
-                            <span className="inline-flex p-1 rounded-md bg-emerald-50 text-emerald-600">
+                            <span className="inline-flex p-1 rounded-md bg-emerald-500/10 text-emerald-400">
                               <Check className="w-3.5 h-3.5" />
                             </span>
                           ) : (
-                            <span className="inline-flex p-1 rounded-md bg-slate-100 text-slate-400">
+                            <span className="inline-flex p-1 rounded-md bg-neutral-800 text-neutral-400">
                               <X className="w-3.5 h-3.5" />
                             </span>
                           )}
@@ -322,11 +323,11 @@ export const AdminsPage: React.FC = () => {
                         {/* Admin RBAC */}
                         <td className="py-3.5 px-4 text-center">
                           {isSuper || adm.can_manage_admins ? (
-                            <span className="inline-flex p-1 rounded-md bg-emerald-50 text-emerald-600">
+                            <span className="inline-flex p-1 rounded-md bg-emerald-500/10 text-emerald-400">
                               <Check className="w-3.5 h-3.5" />
                             </span>
                           ) : (
-                            <span className="inline-flex p-1 rounded-md bg-slate-100 text-slate-400">
+                            <span className="inline-flex p-1 rounded-md bg-neutral-800 text-neutral-400">
                               <X className="w-3.5 h-3.5" />
                             </span>
                           )}
@@ -334,12 +335,12 @@ export const AdminsPage: React.FC = () => {
 
                         <td className="py-3.5 px-4">
                           {adm.is_active ? (
-                            <span className="inline-flex items-center gap-1.5 text-xs text-emerald-700 font-semibold">
-                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                            <span className="inline-flex items-center gap-1.5 text-xs text-emerald-400 font-semibold">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                               Active
                             </span>
                           ) : (
-                            <span className="inline-flex items-center gap-1.5 text-xs text-rose-600 font-semibold">
+                            <span className="inline-flex items-center gap-1.5 text-xs text-rose-400 font-semibold">
                               <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
                               Deactivated
                             </span>
@@ -351,7 +352,7 @@ export const AdminsPage: React.FC = () => {
                             <button
                               onClick={() => handleEditClick(adm)}
                               title="Edit permissions"
-                              className="p-1.5 rounded-lg text-slate-400 hover:text-brand-600 hover:bg-brand-50 transition-colors"
+                              className="p-1.5 rounded-lg text-neutral-400 hover:text-brand-600 hover:bg-brand-50 transition-colors"
                             >
                               <Edit2 className="w-3.5 h-3.5" />
                             </button>
@@ -359,7 +360,7 @@ export const AdminsPage: React.FC = () => {
                               <button
                                 onClick={() => setDeletingAdmin(adm)}
                                 title="Revoke admin access"
-                                className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                                className="p-1.5 rounded-lg text-neutral-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
                               </button>
@@ -387,7 +388,7 @@ export const AdminsPage: React.FC = () => {
         >
           <form onSubmit={handleAddSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label className="block text-xs font-semibold text-neutral-200 mb-1">
                 Google Account Email <span className="text-rose-500">*</span>
               </label>
               <input
@@ -395,28 +396,28 @@ export const AdminsPage: React.FC = () => {
                 value={newAdminData.email}
                 onChange={(e) => setNewAdminData({ ...newAdminData, email: e.target.value })}
                 placeholder="e.g. member@transfinitte.com"
-                className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:border-brand-500 font-medium"
+                className="w-full px-3.5 py-2 bg-neutral-950 border border-neutral-800 rounded-xl text-xs text-neutral-50 focus:outline-none focus:border-brand-500 font-medium"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Name / Title</label>
+              <label className="block text-xs font-semibold text-neutral-200 mb-1">Name / Title</label>
               <input
                 type="text"
                 value={newAdminData.name}
                 onChange={(e) => setNewAdminData({ ...newAdminData, name: e.target.value })}
                 placeholder="e.g. Core Organizer"
-                className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:border-brand-500 font-medium"
+                className="w-full px-3.5 py-2 bg-neutral-950 border border-neutral-800 rounded-xl text-xs text-neutral-50 focus:outline-none focus:border-brand-500 font-medium"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Role Hierarchy</label>
+              <label className="block text-xs font-semibold text-neutral-200 mb-1">Role Hierarchy</label>
               <select
                 value={newAdminData.role}
                 onChange={(e) => setNewAdminData({ ...newAdminData, role: e.target.value })}
-                className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:border-brand-500 font-medium"
+                className="w-full px-3.5 py-2 bg-neutral-950 border border-neutral-800 rounded-xl text-xs text-neutral-50 focus:outline-none focus:border-brand-500 font-medium"
               >
                 <option value="admin">Standard Administrator (Custom Permissions)</option>
                 <option value="superadmin">Super Administrator (Full Unrestricted Access)</option>
@@ -425,17 +426,17 @@ export const AdminsPage: React.FC = () => {
 
             {newAdminData.role === 'admin' && (
               <div className="pt-2">
-                <label className="block text-xs font-semibold text-slate-700 mb-2">
+                <label className="block text-xs font-semibold text-neutral-200 mb-2">
                   Granular Permissions
                 </label>
 
-                <div className="space-y-2.5 p-3 rounded-xl bg-slate-50 border border-slate-200">
-                  <label className="flex items-center gap-2.5 text-xs text-slate-700 font-medium cursor-pointer">
+                <div className="space-y-2.5 p-3 rounded-xl bg-neutral-950 border border-neutral-800">
+                  <label className="flex items-center gap-2.5 text-xs text-neutral-200 font-medium cursor-pointer">
                     <input
                       type="checkbox"
                       checked={newAdminData.can_manage_users}
                       onChange={(e) => setNewAdminData({ ...newAdminData, can_manage_users: e.target.checked })}
-                      className="w-4 h-4 text-brand-600 bg-white border-slate-300 rounded focus:ring-brand-500"
+                      className="w-4 h-4 text-brand-600 bg-neutral-900 border-neutral-700 rounded focus:ring-brand-500"
                     />
                     <div className="flex items-center gap-2">
                       <Users className="w-3.5 h-3.5 text-brand-600" />
@@ -443,41 +444,41 @@ export const AdminsPage: React.FC = () => {
                     </div>
                   </label>
 
-                  <label className="flex items-center gap-2.5 text-xs text-slate-700 font-medium cursor-pointer">
+                  <label className="flex items-center gap-2.5 text-xs text-neutral-200 font-medium cursor-pointer">
                     <input
                       type="checkbox"
                       checked={newAdminData.can_manage_teams}
                       onChange={(e) => setNewAdminData({ ...newAdminData, can_manage_teams: e.target.checked })}
-                      className="w-4 h-4 text-brand-600 bg-white border-slate-300 rounded focus:ring-brand-500"
+                      className="w-4 h-4 text-brand-600 bg-neutral-900 border-neutral-700 rounded focus:ring-brand-500"
                     />
                     <div className="flex items-center gap-2">
-                      <Layers className="w-3.5 h-3.5 text-indigo-600" />
+                      <Layers className="w-3.5 h-3.5 text-indigo-400" />
                       <span><strong>Team Management:</strong> Manage squads and promote leaders</span>
                     </div>
                   </label>
 
-                  <label className="flex items-center gap-2.5 text-xs text-slate-700 font-medium cursor-pointer">
+                  <label className="flex items-center gap-2.5 text-xs text-neutral-200 font-medium cursor-pointer">
                     <input
                       type="checkbox"
                       checked={newAdminData.can_manage_payments}
                       onChange={(e) => setNewAdminData({ ...newAdminData, can_manage_payments: e.target.checked })}
-                      className="w-4 h-4 text-brand-600 bg-white border-slate-300 rounded focus:ring-brand-500"
+                      className="w-4 h-4 text-brand-600 bg-neutral-900 border-neutral-700 rounded focus:ring-brand-500"
                     />
                     <div className="flex items-center gap-2">
-                      <CreditCard className="w-3.5 h-3.5 text-emerald-600" />
+                      <CreditCard className="w-3.5 h-3.5 text-emerald-400" />
                       <span><strong>Payment Management:</strong> Audit and review transaction records</span>
                     </div>
                   </label>
 
-                  <label className="flex items-center gap-2.5 text-xs text-slate-700 font-medium cursor-pointer">
+                  <label className="flex items-center gap-2.5 text-xs text-neutral-200 font-medium cursor-pointer">
                     <input
                       type="checkbox"
                       checked={newAdminData.can_manage_admins}
                       onChange={(e) => setNewAdminData({ ...newAdminData, can_manage_admins: e.target.checked })}
-                      className="w-4 h-4 text-brand-600 bg-white border-slate-300 rounded focus:ring-brand-500"
+                      className="w-4 h-4 text-brand-600 bg-neutral-900 border-neutral-700 rounded focus:ring-brand-500"
                     />
                     <div className="flex items-center gap-2">
-                      <Shield className="w-3.5 h-3.5 text-purple-600" />
+                      <Shield className="w-3.5 h-3.5 text-purple-400" />
                       <span><strong>Admin Delegation:</strong> Whitelist new admin emails</span>
                     </div>
                   </label>
@@ -485,18 +486,18 @@ export const AdminsPage: React.FC = () => {
               </div>
             )}
 
-            <div className="pt-4 flex items-center justify-end gap-2 border-t border-slate-100">
+            <div className="pt-4 flex items-center justify-end gap-2 border-t border-neutral-800">
               <button
                 type="button"
                 onClick={() => setIsAddModalOpen(false)}
-                className="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-colors"
+                className="px-4 py-2 text-xs font-semibold text-neutral-300 hover:text-neutral-50 hover:bg-neutral-800 rounded-xl transition-colors"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={isAdding}
-                className="px-4 py-2 text-xs font-semibold text-white bg-brand-600 hover:bg-brand-500 rounded-xl transition-all shadow-soft disabled:opacity-50"
+                className="px-4 py-2 text-xs font-semibold text-white bg-brand-600 hover:bg-brand-500 rounded-xl transition-all disabled:opacity-50"
               >
                 {isAdding ? 'Authorizing...' : 'Authorize Admin'}
               </button>
@@ -516,21 +517,21 @@ export const AdminsPage: React.FC = () => {
         >
           <form onSubmit={handleSaveEditSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Name / Title</label>
+              <label className="block text-xs font-semibold text-neutral-200 mb-1">Name / Title</label>
               <input
                 type="text"
                 value={editAdminData.name || ''}
                 onChange={(e) => setEditAdminData({ ...editAdminData, name: e.target.value })}
-                className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:border-brand-500 font-medium"
+                className="w-full px-3.5 py-2 bg-neutral-950 border border-neutral-800 rounded-xl text-xs text-neutral-50 focus:outline-none focus:border-brand-500 font-medium"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Role Hierarchy</label>
+              <label className="block text-xs font-semibold text-neutral-200 mb-1">Role Hierarchy</label>
               <select
                 value={editAdminData.role || 'admin'}
                 onChange={(e) => setEditAdminData({ ...editAdminData, role: e.target.value as any })}
-                className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:border-brand-500 font-medium"
+                className="w-full px-3.5 py-2 bg-neutral-950 border border-neutral-800 rounded-xl text-xs text-neutral-50 focus:outline-none focus:border-brand-500 font-medium"
               >
                 <option value="admin">Standard Administrator</option>
                 <option value="superadmin">Super Administrator</option>
@@ -538,47 +539,47 @@ export const AdminsPage: React.FC = () => {
             </div>
 
             <div className="pt-2">
-              <label className="block text-xs font-semibold text-slate-700 mb-2">
+              <label className="block text-xs font-semibold text-neutral-200 mb-2">
                 Assigned Permissions
               </label>
 
-              <div className="space-y-2.5 p-3 rounded-xl bg-slate-50 border border-slate-200">
-                <label className="flex items-center gap-2.5 text-xs text-slate-700 font-medium cursor-pointer">
+              <div className="space-y-2.5 p-3 rounded-xl bg-neutral-950 border border-neutral-800">
+                <label className="flex items-center gap-2.5 text-xs text-neutral-200 font-medium cursor-pointer">
                   <input
                     type="checkbox"
                     checked={editAdminData.can_manage_users || false}
                     onChange={(e) => setEditAdminData({ ...editAdminData, can_manage_users: e.target.checked })}
-                    className="w-4 h-4 text-brand-600 bg-white border-slate-300 rounded focus:ring-brand-500"
+                    className="w-4 h-4 text-brand-600 bg-neutral-900 border-neutral-700 rounded focus:ring-brand-500"
                   />
                   <span>User Directory Management</span>
                 </label>
 
-                <label className="flex items-center gap-2.5 text-xs text-slate-700 font-medium cursor-pointer">
+                <label className="flex items-center gap-2.5 text-xs text-neutral-200 font-medium cursor-pointer">
                   <input
                     type="checkbox"
                     checked={editAdminData.can_manage_teams || false}
                     onChange={(e) => setEditAdminData({ ...editAdminData, can_manage_teams: e.target.checked })}
-                    className="w-4 h-4 text-brand-600 bg-white border-slate-300 rounded focus:ring-brand-500"
+                    className="w-4 h-4 text-brand-600 bg-neutral-900 border-neutral-700 rounded focus:ring-brand-500"
                   />
                   <span>Team Squad Management</span>
                 </label>
 
-                <label className="flex items-center gap-2.5 text-xs text-slate-700 font-medium cursor-pointer">
+                <label className="flex items-center gap-2.5 text-xs text-neutral-200 font-medium cursor-pointer">
                   <input
                     type="checkbox"
                     checked={editAdminData.can_manage_payments || false}
                     onChange={(e) => setEditAdminData({ ...editAdminData, can_manage_payments: e.target.checked })}
-                    className="w-4 h-4 text-brand-600 bg-white border-slate-300 rounded focus:ring-brand-500"
+                    className="w-4 h-4 text-brand-600 bg-neutral-900 border-neutral-700 rounded focus:ring-brand-500"
                   />
                   <span>Payment Transactions & Auditing</span>
                 </label>
 
-                <label className="flex items-center gap-2.5 text-xs text-slate-700 font-medium cursor-pointer">
+                <label className="flex items-center gap-2.5 text-xs text-neutral-200 font-medium cursor-pointer">
                   <input
                     type="checkbox"
                     checked={editAdminData.can_manage_admins || false}
                     onChange={(e) => setEditAdminData({ ...editAdminData, can_manage_admins: e.target.checked })}
-                    className="w-4 h-4 text-brand-600 bg-white border-slate-300 rounded focus:ring-brand-500"
+                    className="w-4 h-4 text-brand-600 bg-neutral-900 border-neutral-700 rounded focus:ring-brand-500"
                   />
                   <span>Admin User Delegation & RBAC Rights</span>
                 </label>
@@ -591,25 +592,25 @@ export const AdminsPage: React.FC = () => {
                 id="is-active-check"
                 checked={editAdminData.is_active || false}
                 onChange={(e) => setEditAdminData({ ...editAdminData, is_active: e.target.checked })}
-                className="w-4 h-4 text-brand-600 bg-white border-slate-300 rounded focus:ring-brand-500"
+                className="w-4 h-4 text-brand-600 bg-neutral-900 border-neutral-700 rounded focus:ring-brand-500"
               />
-              <label htmlFor="is-active-check" className="text-xs text-slate-700 font-medium cursor-pointer">
+              <label htmlFor="is-active-check" className="text-xs text-neutral-200 font-medium cursor-pointer">
                 Account Active (uncheck to temporarily deactivate access)
               </label>
             </div>
 
-            <div className="pt-4 flex items-center justify-end gap-2 border-t border-slate-100">
+            <div className="pt-4 flex items-center justify-end gap-2 border-t border-neutral-800">
               <button
                 type="button"
                 onClick={() => setEditingAdmin(null)}
-                className="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-colors"
+                className="px-4 py-2 text-xs font-semibold text-neutral-300 hover:text-neutral-50 hover:bg-neutral-800 rounded-xl transition-colors"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={isSaving}
-                className="px-4 py-2 text-xs font-semibold text-white bg-brand-600 hover:bg-brand-500 rounded-xl transition-all shadow-soft disabled:opacity-50"
+                className="px-4 py-2 text-xs font-semibold text-white bg-brand-600 hover:bg-brand-500 rounded-xl transition-all disabled:opacity-50"
               >
                 {isSaving ? 'Saving...' : 'Save Permissions'}
               </button>
