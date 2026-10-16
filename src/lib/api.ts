@@ -179,8 +179,8 @@ export const api = {
       const { data } = await apiClient.get<ApiResponse<Team>>(`/api/admin/teams/${encodeURIComponent(id)}`);
       return data;
     },
-    update: async (id: string, payload: Partial<Team>) => {
-      const { data } = await apiClient.patch<ApiResponse>(`/api/team/${id}/details`, payload);
+    update: async (id: string, payload: Partial<Pick<Team, 'name' | 'contact' | 'domain' | 'ispublic'>>) => {
+      const { data } = await apiClient.patch<ApiResponse>(`/api/admin/teams/${encodeURIComponent(id)}`, payload);
       return data;
     },
     updatePaymentStatus: async (id: string, payment_status: string) => {

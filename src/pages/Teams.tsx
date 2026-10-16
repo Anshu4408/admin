@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Layers as LayersIcon,
   Search,
@@ -41,6 +41,15 @@ export const TeamsPage: React.FC = () => {
 
   const [editingTeam, setEditingTeam] = useState<Team | null>(null);
   const [editFormData, setEditFormData] = useState<Partial<Team>>({});
+  const [editError, setEditError] = useState<string | null>(null);
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
+  const editErrorRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (editError) {
+      editErrorRef.current?.focus();
+      editErrorRef.current?.scrollIntoView({ block: 'nearest' });
+    }
+  }, [editError]);
 
   const [deletingTeam, setDeletingTeam] = useState<Team | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -105,19 +114,26 @@ export const TeamsPage: React.FC = () => {
 
   const handleSaveEditTeam = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!editingTeam) return;
+    if (!editingTeam || isSavingEdit) return;
+    setEditError(null);
+    const payload: Partial<Pick<Team, 'name' | 'contact' | 'domain' | 'ispublic'>> = {};
+    if (editFormData.name?.trim() !== editingTeam.name) payload.name = editFormData.name?.trim();
+    if (editFormData.contact?.trim() !== editingTeam.contact) payload.contact = editFormData.contact?.trim();
+    if ((editFormData.domain || '').trim() !== (editingTeam.domain || '')) payload.domain = editFormData.domain?.trim();
+    if (editFormData.ispublic !== editingTeam.ispublic) payload.ispublic = editFormData.ispublic;
+    if (!Object.keys(payload).length) { setEditingTeam(null); return; }
+    setIsSavingEdit(true);
     try {
-      const res = await api.teams.update(editingTeam.team_id, editFormData);
-      if (res.success) {
-        showNotification('success', 'Team updated successfully');
-        setEditingTeam(null);
-        fetchTeams(pagination.page);
-        if (activeTeam?.team_id === editingTeam.team_id) {
-          loadTeamDetails(editingTeam.team_id);
-        }
-      }
+      const res = await api.teams.update(editingTeam.team_id, payload);
+      if (!res.success) throw new Error(res.message || 'Failed to update team');
+      showNotification('success', 'Team updated successfully');
+      setEditingTeam(null);
+      fetchTeams(pagination.page);
+      if (activeTeam?.team_id === editingTeam.team_id) loadTeamDetails(editingTeam.team_id);
     } catch (err: any) {
-      showNotification('error', err.response?.data?.message || 'Failed to update team');
+      setEditError(err.response?.data?.message || err.message || 'Failed to update team');
+    } finally {
+      setIsSavingEdit(false);
     }
   };
 
@@ -392,12 +408,12 @@ export const TeamsPage: React.FC = () => {
                           <div className="flex items-center justify-end gap-1.5">
                             <button
                               onClick={() => {
+                                setEditError(null);
                                 setEditingTeam(team);
                                 setEditFormData({
                                   name: team.name,
                                   contact: team.contact,
                                   domain: team.domain || '',
-                                  problem_statement: team.problem_statement || '',
                                   ispublic: team.ispublic,
                                 });
                               }}
@@ -614,6 +630,7 @@ export const TeamsPage: React.FC = () => {
           maxWidth="md"
         >
           <form onSubmit={handleSaveEditTeam} className="space-y-4">
+            {editError && <div ref={editErrorRef} tabIndex={-1} role="alert" className="rounded-lg border border-rose-500/30 bg-rose-500/10 p-3 text-xs leading-relaxed text-rose-300">{editError}</div>}
             <div>
               <label className="block text-xs font-semibold text-neutral-200 mb-1">Team Name</label>
               <input
@@ -658,12 +675,8 @@ export const TeamsPage: React.FC = () => {
 
             <div>
               <label className="block text-xs font-semibold text-neutral-200 mb-1">Problem Statement</label>
-              <textarea
-                rows={3}
-                value={editFormData.problem_statement || ''}
-                onChange={(e) => setEditFormData({ ...editFormData, problem_statement: e.target.value })}
-                className="w-full px-3.5 py-2 bg-neutral-950 border border-neutral-800 rounded-xl text-xs text-neutral-50 focus:outline-none focus:border-brand-500 font-medium"
-              />
+              <p className="rounded-lg border border-neutral-800 bg-neutral-950 p-3 text-xs text-neutral-300">{editingTeam.problem_statement || 'Not selected'}</p>
+              <p className="mt-2 text-xs text-neutral-400">Selected by the team leader on the registration website when selection is open.</p>
             </div>
 
             <div className="flex items-center gap-2 pt-1">
@@ -689,9 +702,10 @@ export const TeamsPage: React.FC = () => {
               </button>
               <button
                 type="submit"
+                disabled={isSavingEdit}
                 className="px-4 py-2 text-xs font-semibold text-white bg-brand-600 hover:bg-brand-500 rounded-xl transition-all"
               >
-                Save Changes
+                {isSavingEdit ? 'Saving…' : 'Save Changes'}
               </button>
             </div>
           </form>
