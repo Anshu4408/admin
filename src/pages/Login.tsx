@@ -5,11 +5,10 @@ import { Shield, Sparkles, AlertCircle, Lock, Users, Layers, CreditCard, Loader2
 import { useAuth } from '../context/AuthContext';
 
 export const Login: React.FC = () => {
-  const { loginWithGoogle, loginWithDev, isAuthenticated } = useAuth();
+  const { loginWithGoogle, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [adminEmailInput, setAdminEmailInput] = useState('negi.anshulnegi17@gmail.com');
 
   React.useEffect(() => {
     if (isAuthenticated) {
@@ -28,22 +27,6 @@ export const Login: React.FC = () => {
       navigate('/');
     } catch (err: any) {
       const msg = err.response?.data?.message || err.message || 'Google authorization failed';
-      setError(msg);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleEmailLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!adminEmailInput.trim()) return;
-    setError(null);
-    setLoading(true);
-    try {
-      await loginWithDev(adminEmailInput.trim());
-      navigate('/');
-    } catch (err: any) {
-      const msg = err.response?.data?.message || err.message || 'Authorization failed';
       setError(msg);
     } finally {
       setLoading(false);
@@ -135,41 +118,7 @@ export const Login: React.FC = () => {
               Only whitelisted administrator email addresses can access this portal.
             </div>
 
-            {/* Direct Admin Email Sign-in option */}
-            <div className="pt-2">
-              <div className="relative flex py-2 items-center">
-                <div className="flex-grow border-t border-slate-200"></div>
-                <span className="flex-shrink mx-3 text-[11px] text-slate-400 font-semibold uppercase tracking-wider">
-                  Or Sign In by Admin Email
-                </span>
-                <div className="flex-grow border-t border-slate-200"></div>
-              </div>
 
-              <form onSubmit={handleEmailLogin} className="space-y-2 mt-1">
-                <input
-                  type="email"
-                  value={adminEmailInput}
-                  onChange={(e) => setAdminEmailInput(e.target.value)}
-                  placeholder="e.g. negi.anshulnegi17@gmail.com"
-                  className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:border-brand-500 font-medium"
-                  required
-                />
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-semibold shadow-soft transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
-                >
-                  {loading ? (
-                    <>
-                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      <span>Authenticating...</span>
-                    </>
-                  ) : (
-                    <span>Sign In as Administrator</span>
-                  )}
-                </button>
-              </form>
-            </div>
           </div>
 
           <div className="mt-8 pt-6 border-t border-slate-100">
@@ -195,7 +144,7 @@ export const Login: React.FC = () => {
         </div>
 
         <p className="text-center text-[11px] text-slate-400 font-medium mt-6">
-          TransfiNITTe 2025 &bull; Department of Technical Affairs
+          TransfiNITTe 2026 &bull; Department of Technical Affairs
         </p>
       </div>
     </div>

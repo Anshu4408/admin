@@ -1,9 +1,9 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import type { AdminUser } from '../types';
+import type { AdminSessionUser } from '../types';
 import { api } from '../lib/api';
 
 interface AuthContextType {
-  admin: AdminUser | null;
+  admin: AdminSessionUser | null;
   token: string | null;
   isLoading: boolean;
   isAuthenticated: boolean;
@@ -13,7 +13,6 @@ interface AuthContextType {
   canManagePayments: boolean;
   canManageAdmins: boolean;
   loginWithGoogle: (credential: string) => Promise<void>;
-  loginWithDev: (email: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshAdmin: () => Promise<void>;
 }
@@ -21,7 +20,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [admin, setAdmin] = useState<AdminUser | null>(() => {
+  const [admin, setAdmin] = useState<AdminSessionUser | null>(() => {
     const saved = localStorage.getItem('tf_admin_user');
     try { return saved ? JSON.parse(saved) : null; } catch { return null; }
   });
@@ -73,23 +72,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const loginWithDev = async (email: string) => {
-    setIsLoading(true);
-    try {
-      const res = await api.auth.devLogin(email);
-      if (res.success && res.data) {
-        setToken(res.data.token);
-        setAdmin(res.data.admin);
-        localStorage.setItem('tf_admin_token', res.data.token);
-        localStorage.setItem('tf_admin_user', JSON.stringify(res.data.admin));
-      } else {
-        throw new Error(res.message || 'Dev login failed');
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const logout = async () => {
     try {
       await api.auth.logout();
@@ -134,7 +116,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         canManagePayments,
         canManageAdmins,
         loginWithGoogle,
-        loginWithDev,
         logout,
         refreshAdmin,
       }}

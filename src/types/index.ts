@@ -15,6 +15,8 @@ export interface AdminUser {
   updated_at: string;
 }
 
+export type AdminSessionUser = Omit<AdminUser, 'created_at' | 'updated_at'>;
+
 export interface User {
   user_id: string;
   name: string;

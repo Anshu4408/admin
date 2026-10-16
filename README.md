@@ -62,3 +62,16 @@ The admin portal will start at `http://localhost:5174`.
 npm run build
 ```
 The static build will be placed in `admin/dist`.
+
+
+## Administrator sign-in
+
+Only Google sign-in is supported. The browser sends the Google credential to
+`POST /api/admin/auth/google`; the backend verifies its signature, client ID,
+issuer, expiry, verified email, and the `ADMIN_EMAILS` allowlist before creating
+an eight-hour admin session. Existing direct-sign-in/testing sessions are rejected.
+The UI reads the current administrator from `GET /api/admin/auth/me`.
+
+Set backend `GOOGLE_CLIENT_ID` to the same OAuth client ID as this panel's
+`VITE_GOOGLE_CLIENT_ID`. Keep `ADMIN_EMAILS` configured on the backend.
+Deploy the matching backend update before using this frontend release.

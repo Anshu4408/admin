@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { ApiResponse, DashboardStats, AdminUser, User, Team, Payment, Pagination, QRCode, QRPayment } from '../types';
+import type { ApiResponse, DashboardStats, AdminUser, AdminSessionUser, User, Team, Payment, Pagination, QRCode, QRPayment } from '../types';
 
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:9002';
 
@@ -66,145 +66,20 @@ export const api = {
   // Auth
   auth: {
     googleLogin: async (credential: string) => {
-      // Decode Google ID token JWT payload
-      let email = '';
-      let name = '';
-      let picture = '';
       try {
-        const payloadBase64 = credential.split('.')[1];
-        const payloadStr = atob(payloadBase64.replace(/-/g, '+').replace(/_/g, '/'));
-        const payload = JSON.parse(decodeURIComponent(escape(payloadStr)));
-        email = payload.email || '';
-        name = payload.name || email.split('@')[0];
-        picture = payload.picture || '';
-      } catch (err) {
-        console.error('Failed to parse Google credential token:', err);
+        const { data } = await apiClient.post<ApiResponse<{ token: string; admin: AdminSessionUser }>>('/api/admin/auth/google', { credential });
+        return data;
+      } catch (error) {
+        if (axios.isAxiosError(error) && error.response?.status === 404) {
+          throw new Error('Google sign-in requires the backend update to be deployed. Please try again after deployment.');
+        }
+        throw error;
       }
-
-      if (!email) {
-        throw new Error('Google credential did not contain an email address');
-      }
-
-      const existingUser = localStorage.getItem('tf_admin_user');
-      let userId = '';
-      if (existingUser) {
-        try {
-          const parsed = JSON.parse(existingUser);
-          if (parsed.email === email && parsed.admin_id) {
-            userId = parsed.admin_id;
-          }
-        } catch {}
-      }
-      if (!userId) {
-        userId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : 'a0000000-0000-0000-0000-000000000001';
-      }
-
-      // Synchronize with backend to generate a cryptographically valid JWT token
-      const syncRes = await apiClient.post<ApiResponse<any>>('/api/user/sync', {
-        user_id: userId,
-        email: email,
-        name: name,
-        pfp: picture,
-      });
-
-      if (!syncRes.data?.success || !syncRes.data?.token) {
-        throw new Error(syncRes.data?.message || 'Failed to generate admin session token');
-      }
-
-      const adminUser: AdminUser = {
-        admin_id: syncRes.data.data?.user_id || userId,
-        email: email,
-        name: name,
-        picture: picture,
-        role: 'superadmin',
-        can_manage_users: true,
-        can_manage_teams: true,
-        can_manage_payments: true,
-        can_manage_admins: true,
-        is_active: true,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
-
-      return {
-        success: true,
-        message: 'Google login successful',
-        data: {
-          token: syncRes.data.token,
-          admin: adminUser,
-        },
-      };
-    },
-
-    devLogin: async (email: string) => {
-      const cleanEmail = email.trim().toLowerCase();
-      const userId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : 'a0000000-0000-0000-0000-000000000001';
-      const syncRes = await apiClient.post<ApiResponse<any>>('/api/user/sync', {
-        user_id: userId,
-        email: cleanEmail,
-        name: cleanEmail.split('@')[0],
-        pfp: '',
-      });
-
-      if (!syncRes.data?.success || !syncRes.data?.token) {
-        throw new Error(syncRes.data?.message || 'Failed to authenticate admin session with server');
-      }
-
-      const adminUser: AdminUser = {
-        admin_id: syncRes.data.data?.user_id || userId,
-        email: cleanEmail,
-        name: cleanEmail.split('@')[0],
-        picture: '',
-        role: 'superadmin',
-        can_manage_users: true,
-        can_manage_teams: true,
-        can_manage_payments: true,
-        can_manage_admins: true,
-        is_active: true,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
-
-      return {
-        success: true,
-        message: 'Dev login successful',
-        data: {
-          token: syncRes.data.token,
-          admin: adminUser,
-        },
-      };
     },
 
     getMe: async () => {
-      const { data } = await apiClient.get<ApiResponse<any>>('/api/user/me');
-      if (data.success && data.data) {
-        const u = data.data;
-        const saved = localStorage.getItem('tf_admin_user');
-        const parsed = saved ? JSON.parse(saved) : {};
-        const adminUser: AdminUser = {
-          admin_id: u.user_id || parsed.admin_id,
-          email: u.email || parsed.email,
-          name: u.name || parsed.name || 'Admin',
-          picture: u.pfp || parsed.picture,
-          role: parsed.role || 'superadmin',
-          can_manage_users: true,
-          can_manage_teams: true,
-          can_manage_payments: true,
-          can_manage_admins: true,
-          is_active: true,
-          created_at: u.created_at || new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        };
-        return {
-          success: true,
-          message: 'User session active',
-          data: adminUser,
-        };
-      }
-      return {
-        success: false,
-        message: data.message || 'Session expired',
-      };
+      const { data } = await apiClient.get<ApiResponse<AdminSessionUser>>('/api/admin/auth/me');
+      return data;
     },
 
     logout: async () => {
