@@ -121,19 +121,6 @@ export const TeamsPage: React.FC = () => {
     }
   };
 
-  const handleQuickPaymentStatus = async (teamId: string, status: string) => {
-    try {
-      await api.teams.updatePaymentStatus(teamId, status);
-      showNotification('success', `Payment status changed to ${status}`);
-      fetchTeams(pagination.page);
-      if (activeTeam?.team_id === teamId) {
-        loadTeamDetails(teamId);
-      }
-    } catch (err: any) {
-      showNotification('error', err.response?.data?.message || 'Failed to update payment status');
-    }
-  };
-
   const handleDeleteTeamConfirm = async () => {
     if (!deletingTeam) return;
     setIsDeleting(true);
@@ -385,15 +372,6 @@ export const TeamsPage: React.FC = () => {
                         <td className="py-3.5 px-4">
                           <div className="flex items-center gap-2">
                             <StatusBadge status={team.payment_status} />
-                            <select
-                              value={team.payment_status}
-                              onChange={(e) => handleQuickPaymentStatus(team.team_id, e.target.value)}
-                              className="bg-slate-50 border border-slate-200 rounded-lg text-[10px] py-0.5 px-1.5 text-slate-700 font-medium focus:outline-none focus:border-brand-500"
-                            >
-                              <option value="Paid">Paid</option>
-                              <option value="Pending">Pending</option>
-                              <option value="Failed">Failed</option>
-                            </select>
                           </div>
                         </td>
 
@@ -420,7 +398,6 @@ export const TeamsPage: React.FC = () => {
                                   domain: team.domain || '',
                                   problem_statement: team.problem_statement || '',
                                   ispublic: team.ispublic,
-                                  payment_status: team.payment_status,
                                 });
                               }}
                               title="Edit details"
@@ -671,15 +648,10 @@ export const TeamsPage: React.FC = () => {
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">Payment Status</label>
-                <select
-                  value={editFormData.payment_status || 'Pending'}
-                  onChange={(e) => setEditFormData({ ...editFormData, payment_status: e.target.value })}
-                  className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:border-brand-500 font-medium"
-                >
-                  <option value="Paid">Paid</option>
-                  <option value="Pending">Pending</option>
-                  <option value="Failed">Failed</option>
-                </select>
+                <div className="space-y-2 py-1">
+                  <StatusBadge status={editingTeam.payment_status} />
+                  <p className="text-[11px] text-slate-500">Manage payment approvals and rejections in QR Codes &amp; UTR.</p>
+                </div>
               </div>
             </div>
 
