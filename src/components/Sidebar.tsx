@@ -5,6 +5,7 @@ import {
   Users,
   Layers,
   CreditCard,
+  QrCode,
   ShieldCheck,
   LogOut,
   ExternalLink,
@@ -37,6 +38,12 @@ export const Sidebar: React.FC = () => {
       to: '/payments',
       label: 'Payments',
       icon: CreditCard,
+      allowed: canManagePayments,
+    },
+    {
+      to: '/qr-payments',
+      label: 'QR Codes & UTR',
+      icon: QrCode,
       allowed: canManagePayments,
     },
     {

@@ -8,6 +8,7 @@ import { UsersPage } from './pages/Users';
 import { TeamsPage } from './pages/Teams';
 import { PaymentsPage } from './pages/Payments';
 import { AdminsPage } from './pages/Admins';
+import { QRPaymentsPage } from './pages/QRPayments';
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || 'placeholder-id.apps.googleusercontent.com';
 
@@ -26,6 +27,8 @@ export function App() {
               <Route path="/users" element={<UsersPage />} />
               <Route path="/teams" element={<TeamsPage />} />
               <Route path="/payments" element={<PaymentsPage />} />
+              <Route path="/qr-payments" element={<QRPaymentsPage />} />
+              <Route path="/qr-codes" element={<QRPaymentsPage />} />
               <Route path="/admins" element={<AdminsPage />} />
             </Route>
 

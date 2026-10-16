@@ -88,4 +88,31 @@ export interface ApiResponse<T = any> {
   message: string;
   data?: T;
   error?: string;
+  token?: string;
 }
+
+export interface QRCode {
+  id: number;
+  label: string;
+  image_url: string;
+  upi_id?: string;
+  is_active: boolean;
+  slot_index: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface QRPayment {
+  id: number;
+  team_id: string;
+  utr: string;
+  screenshot_url?: string;
+  qr_slot_index: number;
+  amount: number;
+  status: 'processing' | 'paid' | 'rejected' | string;
+  admin_note?: string;
+  submitted_at: string;
+  verified_at?: string;
+  verified_by?: string;
+}
+

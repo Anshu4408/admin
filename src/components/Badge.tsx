@@ -39,6 +39,14 @@ export const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
       </Badge>
     );
   }
+  if (s === 'processing') {
+    return (
+      <Badge variant="amber">
+        <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+        Processing
+      </Badge>
+    );
+  }
   if (s === 'pending') {
     return (
       <Badge variant="amber">
