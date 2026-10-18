@@ -211,9 +211,9 @@ export const AdminsPage: React.FC = () => {
 
         {/* Admins Table */}
         <div className="bg-neutral-900 border border-neutral-800/80 rounded-xl overflow-hidden">
-          <p className="border-b border-neutral-800 px-4 py-2 text-xs text-neutral-500 sm:hidden">Scroll sideways to see all columns and actions.</p>
-          <div className="overflow-x-auto overscroll-x-contain" role="region" aria-label="Scrollable records" tabIndex={0}>
-            <table className="min-w-[740px] w-full text-left text-xs">
+
+          <div className="record-list min-w-0">
+            <table role="table" className="record-table w-full text-left text-xs">
               <thead className="bg-neutral-950 text-neutral-300 border-b border-neutral-800 uppercase tracking-wider text-xs font-semibold">
                 <tr>
                   <th className="py-3.5 px-5">Administrator</th>
@@ -250,7 +250,7 @@ export const AdminsPage: React.FC = () => {
 
                     return (
                       <tr key={adm.admin_id} className="hover:bg-neutral-950/80 transition-colors">
-                        <td className="py-3.5 px-5">
+                        <td data-label="Administrator" className="py-3.5 px-5">
                           <div className="flex items-center gap-3">
                             {adm.picture ? (
                               <img src={adm.picture} alt={adm.name} className="w-8 h-8 rounded-full object-cover ring-1 ring-neutral-800" />
@@ -273,7 +273,7 @@ export const AdminsPage: React.FC = () => {
                           </div>
                         </td>
 
-                        <td className="py-3.5 px-4">
+                        <td data-label="Role" className="py-3.5 px-4">
                           {isSuper ? (
                             <Badge variant="emerald">Superadmin</Badge>
                           ) : (
@@ -282,7 +282,7 @@ export const AdminsPage: React.FC = () => {
                         </td>
 
                         {/* User Mgmt */}
-                        <td className="py-3.5 px-4 text-center">
+                        <td data-label="User Mgmt" className="py-3.5 px-4 text-center">
                           {isSuper || adm.can_manage_users ? (
                             <span className="inline-flex p-1 rounded-md bg-emerald-500/10 text-emerald-400">
                               <Check className="w-3.5 h-3.5" />
@@ -295,7 +295,7 @@ export const AdminsPage: React.FC = () => {
                         </td>
 
                         {/* Team Mgmt */}
-                        <td className="py-3.5 px-4 text-center">
+                        <td data-label="Team Mgmt" className="py-3.5 px-4 text-center">
                           {isSuper || adm.can_manage_teams ? (
                             <span className="inline-flex p-1 rounded-md bg-emerald-500/10 text-emerald-400">
                               <Check className="w-3.5 h-3.5" />
@@ -308,7 +308,7 @@ export const AdminsPage: React.FC = () => {
                         </td>
 
                         {/* Payment Mgmt */}
-                        <td className="py-3.5 px-4 text-center">
+                        <td data-label="Payment Mgmt" className="py-3.5 px-4 text-center">
                           {isSuper || adm.can_manage_payments ? (
                             <span className="inline-flex p-1 rounded-md bg-emerald-500/10 text-emerald-400">
                               <Check className="w-3.5 h-3.5" />
@@ -321,7 +321,7 @@ export const AdminsPage: React.FC = () => {
                         </td>
 
                         {/* Admin RBAC */}
-                        <td className="py-3.5 px-4 text-center">
+                        <td data-label="Admin RBAC" className="py-3.5 px-4 text-center">
                           {isSuper || adm.can_manage_admins ? (
                             <span className="inline-flex p-1 rounded-md bg-emerald-500/10 text-emerald-400">
                               <Check className="w-3.5 h-3.5" />
@@ -333,7 +333,7 @@ export const AdminsPage: React.FC = () => {
                           )}
                         </td>
 
-                        <td className="py-3.5 px-4">
+                        <td data-label="Status" className="py-3.5 px-4">
                           {adm.is_active ? (
                             <span className="inline-flex items-center gap-1.5 text-xs text-emerald-400 font-semibold">
                               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
@@ -347,7 +347,7 @@ export const AdminsPage: React.FC = () => {
                           )}
                         </td>
 
-                        <td className="py-3.5 px-5 text-right">
+                        <td data-label="Actions" className="py-3.5 px-5 text-right">
                           <div className="flex items-center justify-end gap-1.5">
                             <button
                               onClick={() => handleEditClick(adm)}

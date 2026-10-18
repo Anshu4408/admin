@@ -42,6 +42,7 @@ export interface Team {
   ispublic: boolean;
   created_at: string;
   members?: User[];
+  member_count?: number;
 }
 
 export interface Payment {

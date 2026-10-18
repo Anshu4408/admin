@@ -23,7 +23,7 @@ export const Badge: React.FC<BadgeProps> = ({ children, variant = 'slate', size 
   };
 
   return (
-    <span className={`inline-flex items-center gap-1.5 ${variantClasses[variant]} ${sizeClasses[size]}`}>
+    <span data-badge className={`inline-flex max-w-full items-center gap-1.5 whitespace-nowrap shrink-0 ${variantClasses[variant]} ${sizeClasses[size]}`}>
       {children}
     </span>
   );

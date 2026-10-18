@@ -409,10 +409,10 @@ export const QRPaymentsPage: React.FC = () => {
         </div>
 
         {/* Tab Toggle Navigation */}
-        <div className="flex items-center gap-2 border-b border-neutral-800">
+        <div className="qr-tabs flex flex-col gap-1 border-b border-neutral-800 sm:flex-row sm:gap-4">
           <button
             onClick={() => setActiveTab('qrs')}
-            className={`flex items-center gap-2 px-4 py-3 text-xs font-semibold border-b-2 transition-all ${
+            className={`flex min-w-0 flex-wrap items-center gap-2 px-3 py-3 text-left text-xs font-semibold border-b-2 transition-all ${
               activeTab === 'qrs'
                 ? 'border-brand-600 text-brand-600'
                 : 'border-transparent text-neutral-400 hover:text-neutral-100'
@@ -427,7 +427,7 @@ export const QRPaymentsPage: React.FC = () => {
 
           <button
             onClick={() => setActiveTab('submissions')}
-            className={`flex items-center gap-2 px-4 py-3 text-xs font-semibold border-b-2 transition-all ${
+            className={`flex min-w-0 flex-wrap items-center gap-2 px-3 py-3 text-left text-xs font-semibold border-b-2 transition-all ${
               activeTab === 'submissions'
                 ? 'border-brand-600 text-brand-600'
                 : 'border-transparent text-neutral-400 hover:text-neutral-100'
@@ -591,8 +591,8 @@ export const QRPaymentsPage: React.FC = () => {
         {activeTab === 'submissions' && (
           <div className="space-y-4">
             {/* Search & Status Filters */}
-            <div className="bg-neutral-900 border border-neutral-800/80 rounded-xl p-4 flex flex-col md:flex-row gap-3 items-center justify-between">
-              <div className="relative flex-1 w-full">
+            <div className="bg-neutral-900 border border-neutral-800/80 rounded-xl filter-bar p-4 flex flex-wrap gap-3 items-center">
+              <div className="relative min-w-0 flex-[1_1_18rem] w-full">
                 <Search className="w-4 h-4 text-neutral-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
@@ -603,7 +603,7 @@ export const QRPaymentsPage: React.FC = () => {
                 />
               </div>
 
-              <div className="flex flex-wrap items-center gap-2.5 w-full md:w-auto">
+              <div className="flex flex-wrap items-center gap-2.5 w-full xl:w-auto">
                 <div className="flex items-center gap-1.5 text-xs text-neutral-400 font-medium">
                   <Filter className="w-3.5 h-3.5" />
                   <span>Status:</span>
@@ -637,9 +637,9 @@ export const QRPaymentsPage: React.FC = () => {
 
             {/* Submissions Table */}
             <div className="bg-neutral-900 border border-neutral-800/80 rounded-xl overflow-hidden">
-              <p className="border-b border-neutral-800 px-4 py-2 text-xs text-neutral-500 sm:hidden">Scroll sideways to see all columns and actions.</p>
-          <div className="overflow-x-auto overscroll-x-contain" role="region" aria-label="Scrollable records" tabIndex={0}>
-                <table className="min-w-[740px] w-full text-left text-xs">
+
+          <div className="record-list min-w-0">
+                <table role="table" className="record-table w-full text-left text-xs">
                   <thead className="bg-neutral-950 text-neutral-300 border-b border-neutral-800 uppercase tracking-wider text-xs font-semibold">
                     <tr>
                       <th className="py-3.5 px-5">Team ID</th>
@@ -686,7 +686,7 @@ export const QRPaymentsPage: React.FC = () => {
                         return (
                           <tr key={sub.id} className="hover:bg-neutral-950/80 transition-colors">
                             {/* Team ID */}
-                            <td className="py-3.5 px-5">
+                            <td data-label="Team ID" className="py-3.5 px-5">
                               <div className="flex items-center gap-1.5 font-mono">
                                 <span className="font-semibold text-neutral-50">{sub.team_id}</span>
                                 <button
@@ -704,7 +704,7 @@ export const QRPaymentsPage: React.FC = () => {
                             </td>
 
                             {/* UTR */}
-                            <td className="py-3.5 px-4">
+                            <td data-label="UTR / Transaction Ref" className="py-3.5 px-4">
                               <div className="flex items-center gap-1.5 font-mono bg-neutral-800/80 px-2 py-1 rounded-lg w-fit border border-neutral-800">
                                 <span className="font-semibold text-neutral-50 text-xs">{sub.utr}</span>
                                 <button
@@ -722,7 +722,7 @@ export const QRPaymentsPage: React.FC = () => {
                             </td>
 
                             {/* Amount & Slot */}
-                            <td className="py-3.5 px-4">
+                            <td data-label="Amount & Slot" className="py-3.5 px-4">
                               <div className="flex flex-col">
                                 <span className="font-semibold text-neutral-50 text-xs">
                                   ₹{sub.amount?.toLocaleString('en-IN') || '400'}
@@ -732,7 +732,7 @@ export const QRPaymentsPage: React.FC = () => {
                             </td>
 
                             {/* Screenshot Proof */}
-                            <td className="py-3.5 px-4">
+                            <td data-label="Proof Screenshot" className="py-3.5 px-4">
                               {sub.screenshot_url ? (
                                 <button
                                   onClick={async () => {
@@ -752,12 +752,12 @@ export const QRPaymentsPage: React.FC = () => {
                             </td>
 
                             {/* Status */}
-                            <td className="py-3.5 px-4">
+                            <td data-label="Status" className="py-3.5 px-4">
                               <StatusBadge status={sub.status} />
                             </td>
 
                             {/* Submitted At */}
-                            <td className="py-3.5 px-4 text-xs text-neutral-400 font-medium">
+                            <td data-label="Submitted At" className="py-3.5 px-4 text-xs text-neutral-400 font-medium">
                               <div>
                                 <span className="text-neutral-100 font-semibold block">
                                   {new Date(sub.submitted_at).toLocaleDateString()}
@@ -772,7 +772,7 @@ export const QRPaymentsPage: React.FC = () => {
                             </td>
 
                             {/* Audit Note / Verified By */}
-                            <td className="py-3.5 px-4 text-xs text-neutral-400">
+                            <td data-label="Audit Note" className="py-3.5 px-4 text-xs text-neutral-400">
                               {sub.reversal_reason && (
                                 <div className="mb-1 text-rose-400 max-w-xs break-words">
                                   <p className="font-semibold">Marked unpaid: {sub.reversal_reason}</p>
@@ -794,7 +794,7 @@ export const QRPaymentsPage: React.FC = () => {
                             </td>
 
                             {/* Actions */}
-                            <td className="py-3.5 px-5 text-right">
+                            <td data-label="Actions" className="py-3.5 px-5 text-right">
                               <div className="flex items-center justify-end gap-1.5">
                                 {isProcessing && (
                                   <>

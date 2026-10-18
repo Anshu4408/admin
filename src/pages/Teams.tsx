@@ -6,8 +6,6 @@ import {
   Download,
   Edit2,
   Trash2,
-  UserPlus,
-  UserMinus,
   Crown,
   Copy,
   Check,
@@ -38,6 +36,10 @@ export const TeamsPage: React.FC = () => {
 
   // Modals & Drawers
   const [activeTeam, setActiveTeam] = useState<Team | null>(null);
+  const [rosterTeam, setRosterTeam] = useState<Team | null>(null);
+  const [rosterLoading, setRosterLoading] = useState(false);
+  const [rosterError, setRosterError] = useState<string | null>(null);
+  const rosterRequest = useRef(0);
 
   const [editingTeam, setEditingTeam] = useState<Team | null>(null);
   const [editFormData, setEditFormData] = useState<Partial<Team>>({});
@@ -54,8 +56,6 @@ export const TeamsPage: React.FC = () => {
   const [deletingTeam, setDeletingTeam] = useState<Team | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const [newMemberEmail, setNewMemberEmail] = useState('');
-  const [isAddingMember, setIsAddingMember] = useState(false);
 
   const [copiedTeamId, setCopiedTeamId] = useState<string | null>(null);
   const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
@@ -83,12 +83,13 @@ export const TeamsPage: React.FC = () => {
         limit: 10,
       });
 
-      if (res.success && res.data) {
+      if (!res.success || !res.data) throw new Error(res.message || 'Could not load teams');
+      if (res.data) {
         setTeams(res.data.teams || []);
         setPagination(res.data.pagination);
       }
     } catch (err: any) {
-      showNotification('error', err.response?.data?.message || 'Failed to fetch teams');
+      showNotification('error', err.response?.data?.message || err.message || 'Failed to fetch teams');
     } finally {
       setLoading(false);
     }
@@ -101,14 +102,29 @@ export const TeamsPage: React.FC = () => {
     return () => clearTimeout(timer);
   }, [fetchTeams]);
 
+  const closeRoster = () => {
+    rosterRequest.current += 1;
+    setRosterTeam(null);
+    setActiveTeam(null);
+    setRosterError(null);
+  };
+
   const loadTeamDetails = async (teamId: string) => {
+    const requestId = ++rosterRequest.current;
+    setRosterTeam(teams.find(team => team.team_id === teamId) || activeTeam);
+    setActiveTeam(null);
+    setRosterLoading(true);
+    setRosterError(null);
     try {
       const res = await api.teams.get(teamId);
-      if (res.success && res.data) {
-        setActiveTeam(res.data);
-      }
-    } catch {
-      showNotification('error', 'Failed to load team details');
+      if (!res.success || !res.data || !Array.isArray(res.data.members)) throw new Error(res.message || 'Team members were not returned. Please retry.');
+      if (requestId !== rosterRequest.current) return;
+      setActiveTeam(res.data);
+      setTeams(current => current.map(team => team.team_id === teamId ? { ...team, member_count: res.data!.members!.length } : team));
+    } catch (err: any) {
+      if (requestId === rosterRequest.current) setRosterError(err.response?.data?.message || err.message || 'Could not load team members');
+    } finally {
+      if (requestId === rosterRequest.current) setRosterLoading(false);
     }
   };
 
@@ -157,51 +173,6 @@ export const TeamsPage: React.FC = () => {
     }
   };
 
-  const handleAddMember = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!activeTeam || !newMemberEmail.trim()) return;
-    setIsAddingMember(true);
-    try {
-      const res = await api.teams.addMember(activeTeam.team_id, { email: newMemberEmail.trim() });
-      if (res.success) {
-        showNotification('success', `Added ${newMemberEmail} to squad`);
-        setNewMemberEmail('');
-        loadTeamDetails(activeTeam.team_id);
-        fetchTeams(pagination.page);
-      }
-    } catch (err: any) {
-      showNotification('error', err.response?.data?.message || 'Failed to add participant to squad');
-    } finally {
-      setIsAddingMember(false);
-    }
-  };
-
-  const handleRemoveMember = async (teamId: string, userId: string, userName: string) => {
-    try {
-      const res = await api.teams.removeMember(teamId, userId);
-      if (res.success) {
-        showNotification('success', `Removed ${userName || 'member'} from squad`);
-        loadTeamDetails(teamId);
-        fetchTeams(pagination.page);
-      }
-    } catch (err: any) {
-      showNotification('error', err.response?.data?.message || 'Failed to remove member');
-    }
-  };
-
-  const handleChangeLeader = async (teamId: string, newLeaderUserId: string) => {
-    try {
-      const res = await api.teams.changeLeader(teamId, newLeaderUserId);
-      if (res.success) {
-        showNotification('success', 'Team leadership transferred successfully');
-        loadTeamDetails(teamId);
-        fetchTeams(pagination.page);
-      }
-    } catch (err: any) {
-      showNotification('error', err.response?.data?.message || 'Failed to change team leader');
-    }
-  };
-
   return (
     <div className="flex-1 flex flex-col min-h-screen">
       <Navbar
@@ -235,8 +206,8 @@ export const TeamsPage: React.FC = () => {
         )}
 
         {/* Filter Bar */}
-        <div className="bg-neutral-900 border border-neutral-800/80 rounded-xl p-4 flex flex-col md:flex-row gap-3 items-center justify-between">
-          <div className="relative flex-1 w-full">
+        <div className="bg-neutral-900 border border-neutral-800/80 rounded-xl filter-bar p-4 flex flex-wrap gap-3 items-center">
+          <div className="relative min-w-0 flex-[1_1_18rem] w-full">
             <Search className="w-4 h-4 text-neutral-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
@@ -247,7 +218,7 @@ export const TeamsPage: React.FC = () => {
             />
           </div>
 
-          <div className="flex flex-wrap items-center gap-2.5 w-full md:w-auto">
+          <div className="flex flex-wrap items-center gap-2.5 w-full xl:w-auto">
             <div className="flex items-center gap-1.5 text-xs text-neutral-400 font-medium">
               <Filter className="w-3.5 h-3.5" />
               <span>Filters:</span>
@@ -294,9 +265,9 @@ export const TeamsPage: React.FC = () => {
 
         {/* Teams Table */}
         <div className="bg-neutral-900 border border-neutral-800/80 rounded-xl overflow-hidden">
-          <p className="border-b border-neutral-800 px-4 py-2 text-xs text-neutral-500 sm:hidden">Scroll sideways to see all columns and actions.</p>
-          <div className="overflow-x-auto overscroll-x-contain" role="region" aria-label="Scrollable records" tabIndex={0}>
-            <table className="min-w-[740px] w-full text-left text-xs">
+
+          <div className="record-list min-w-0">
+            <table role="table" className="record-table w-full text-left text-xs">
               <thead className="bg-neutral-950 text-neutral-300 border-b border-neutral-800 uppercase tracking-wider text-xs font-semibold">
                 <tr>
                   <th className="py-3.5 px-5">Team Name & Code</th>
@@ -331,18 +302,18 @@ export const TeamsPage: React.FC = () => {
                   </tr>
                 ) : (
                   teams.map((team) => {
-                    const memberCount = team.members?.length || 0;
+                    const memberCount = team.member_count ?? (Array.isArray(team.members) ? team.members.length : undefined);
                     return (
                       <tr key={team.team_id} className="hover:bg-neutral-950/80 transition-colors">
-                        <td className="py-3.5 px-5">
+                        <td data-label="Team Name & Code" className="py-3.5 px-5">
                           <div>
-                            <p
+                            <button
                               onClick={() => loadTeamDetails(team.team_id)}
-                              title="Click to inspect and manage squad roster"
-                              className="font-semibold text-neutral-50 text-sm hover:text-brand-600 cursor-pointer transition-colors"
+                              aria-label={`View members of ${team.name}`}
+                              className="text-left font-semibold text-neutral-50 text-sm hover:text-brand-600 transition-colors"
                             >
                               {team.name}
-                            </p>
+                            </button>
                             <div className="flex items-center gap-1.5 mt-0.5">
                               <span className="font-mono text-xs text-neutral-400 font-medium">{team.team_id}</span>
                               <button
@@ -360,7 +331,7 @@ export const TeamsPage: React.FC = () => {
                           </div>
                         </td>
 
-                        <td className="py-3.5 px-4">
+                        <td data-label="Leader" className="py-3.5 px-4">
                           <div className="flex items-center gap-1.5">
                             <Crown className="w-3.5 h-3.5 text-amber-500 shrink-0" />
                             <div>
@@ -370,29 +341,24 @@ export const TeamsPage: React.FC = () => {
                           </div>
                         </td>
 
-                        <td className="py-3.5 px-4">
+                        <td data-label="Domain" className="py-3.5 px-4">
                           <Badge variant="indigo">{team.domain || 'Open Track'}</Badge>
                         </td>
 
-                        <td className="py-3.5 px-4">
-                          <span
-                            className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
-                              memberCount >= 3
-                                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/25'
-                                : 'bg-amber-500/10 text-amber-400 border border-amber-500/25'
-                            }`}
-                          >
-                            {memberCount} / 5 members
-                          </span>
+                        <td data-label="Members" className="py-3.5 px-4">
+                          <div className="flex flex-col items-start gap-2">
+                            <Badge variant={memberCount === undefined ? 'slate' : memberCount >= 4 ? 'emerald' : 'amber'}>{memberCount === undefined ? 'Count unavailable' : `${memberCount} / 5 members`}</Badge>
+                            <button onClick={() => loadTeamDetails(team.team_id)} className="text-left text-xs text-neutral-300 underline underline-offset-4 hover:text-white">View members</button>
+                          </div>
                         </td>
 
-                        <td className="py-3.5 px-4">
+                        <td data-label="Payment Status" className="py-3.5 px-4">
                           <div className="flex items-center gap-2">
                             <StatusBadge status={team.payment_status} />
                           </div>
                         </td>
 
-                        <td className="py-3.5 px-4">
+                        <td data-label="Visibility" className="py-3.5 px-4">
                           {team.ispublic ? (
                             <span className="inline-flex items-center gap-1 text-xs text-emerald-400 font-semibold">
                               <Globe className="w-3 h-3" /> Public
@@ -404,7 +370,7 @@ export const TeamsPage: React.FC = () => {
                           )}
                         </td>
 
-                        <td className="py-3.5 px-5 text-right">
+                        <td data-label="Actions" className="py-3.5 px-5 text-right">
                           <div className="flex items-center justify-end gap-1.5">
                             <button
                               onClick={() => {
@@ -495,128 +461,22 @@ export const TeamsPage: React.FC = () => {
         </div>
       </main>
 
-      {/* Team Details & Member Management Modal */}
-      {activeTeam && (
-        <Modal
-          isOpen={!!activeTeam}
-          onClose={() => setActiveTeam(null)}
-          title={activeTeam.name}
-          subtitle={`Team ID: ${activeTeam.team_id} • Domain: ${activeTeam.domain || 'Unspecified'}`}
-          maxWidth="xl"
-        >
-          <div className="space-y-6">
-            {/* Meta tags summary */}
-            <div className="grid grid-cols-3 gap-3 p-3.5 rounded-xl bg-neutral-950 border border-neutral-800 text-xs">
-              <div>
-                <span className="text-neutral-400 block text-xs uppercase font-semibold">Payment</span>
-                <StatusBadge status={activeTeam.payment_status} />
-              </div>
-              <div>
-                <span className="text-neutral-400 block text-xs uppercase font-semibold">Contact</span>
-                <span className="font-semibold text-neutral-100">{activeTeam.contact || 'None'}</span>
-              </div>
-              <div>
-                <span className="text-neutral-400 block text-xs uppercase font-semibold">Visibility</span>
-                <span className="font-semibold text-neutral-100">{activeTeam.ispublic ? 'Public' : 'Private'}</span>
-              </div>
-            </div>
-
-            {/* Problem Statement */}
-            {activeTeam.problem_statement && (
-              <div className="p-4 rounded-xl bg-neutral-950 border border-neutral-800">
-                <h5 className="text-xs font-semibold uppercase tracking-wider text-neutral-400 mb-1">Problem Statement</h5>
-                <p className="text-xs text-neutral-200 leading-relaxed font-medium">{activeTeam.problem_statement}</p>
-              </div>
-            )}
-
-            {/* Members Section */}
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <h4 className="text-xs font-semibold uppercase tracking-wider text-neutral-50 flex items-center gap-1.5">
-                  <LayersIcon className="w-3.5 h-3.5 text-brand-600" />
-                  Roster Members ({activeTeam.members?.length || 0} / 5)
-                </h4>
-              </div>
-
-              <div className="space-y-2">
-                {activeTeam.members && activeTeam.members.length > 0 ? (
-                  activeTeam.members.map((member) => {
-                    const isLeader = member.user_id === activeTeam.leader_user_id;
-                    return (
-                      <div
-                        key={member.user_id}
-                        className="p-3 rounded-xl bg-neutral-950 border border-neutral-800 flex items-center justify-between"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-brand-50 border border-brand-100 flex items-center justify-center font-semibold text-xs text-brand-700">
-                            {member.name ? member.name[0].toUpperCase() : 'U'}
-                          </div>
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <p className="text-xs font-semibold text-neutral-50">{member.name || 'Anonymous'}</p>
-                              {isLeader && (
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/25">
-                                  <Crown className="w-3 h-3 text-amber-500" /> Leader
-                                </span>
-                              )}
-                            </div>
-                            <p className="text-xs text-neutral-400">{member.email} • Roll: {member.roll_number || 'N/A'}</p>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-1.5">
-                          {!isLeader && (
-                            <button
-                              onClick={() => handleChangeLeader(activeTeam.team_id, member.user_id)}
-                              title="Promote to Team Leader"
-                              className="px-2.5 py-1 text-xs font-semibold bg-neutral-900 hover:bg-neutral-800 text-neutral-200 border border-neutral-800 rounded-lg transition-colors flex items-center gap-1"
-                            >
-                              <Crown className="w-3 h-3 text-amber-500" />
-                              Make Leader
-                            </button>
-                          )}
-                          <button
-                            onClick={() => handleRemoveMember(activeTeam.team_id, member.user_id, member.name)}
-                            title="Remove from squad"
-                            className="p-1.5 text-neutral-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors"
-                          >
-                            <UserMinus className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })
-                ) : (
-                  <p className="text-xs text-neutral-400 py-4 text-center">No members currently assigned to this squad.</p>
-                )}
-              </div>
-            </div>
-
-            {/* Add Member form */}
-            {(activeTeam.members?.length || 0) < 5 && (
-              <form onSubmit={handleAddMember} className="pt-3 border-t border-neutral-800">
-                <label className="block text-xs font-semibold text-neutral-200 mb-1.5">Add Participant by Email</label>
-                <div className="flex gap-2">
-                  <input
-                    type="email"
-                    value={newMemberEmail}
-                    onChange={(e) => setNewMemberEmail(e.target.value)}
-                    placeholder="Participant's registered email address..."
-                    className="flex-1 px-3 py-2 bg-neutral-950 border border-neutral-800 rounded-xl text-xs text-neutral-50 placeholder-neutral-400 focus:outline-none focus:border-brand-500 font-medium"
-                    required
-                  />
-                  <button
-                    type="submit"
-                    disabled={isAddingMember}
-                    className="px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-xs font-semibold transition-all disabled:opacity-50 flex items-center gap-1.5"
-                  >
-                    <UserPlus className="w-3.5 h-3.5" />
-                    <span>{isAddingMember ? 'Adding...' : 'Add Member'}</span>
-                  </button>
-                </div>
-              </form>
-            )}
-          </div>
+      {/* Member details are fetched only when the roster is opened. */}
+      {rosterTeam && (
+        <Modal isOpen onClose={closeRoster} title={`${rosterTeam.name} · Members`} subtitle={`Team ${rosterTeam.team_id}`} maxWidth="xl">
+          {rosterLoading ? <div role="status" className="flex items-center gap-3 py-8 text-sm text-neutral-400"><Loader2 className="h-5 w-5 animate-spin" />Loading team members…</div>
+            : rosterError ? <div role="alert" className="space-y-4"><p className="text-sm text-rose-300">{rosterError}</p><button onClick={() => loadTeamDetails(rosterTeam.team_id)} className="rounded-lg border border-neutral-700 px-4 py-2 text-sm">Retry</button></div>
+            : activeTeam && <div className="space-y-5">
+              <div className="flex flex-wrap items-center gap-3 text-xs text-neutral-400"><StatusBadge status={activeTeam.payment_status} /><span>{activeTeam.members!.length} / 5 members</span><span>{activeTeam.domain || 'No domain'}</span></div>
+              <ul className="space-y-3" aria-label="Team members">
+                {activeTeam.members!.map(member => <li key={member.user_id} className="min-w-0 rounded-lg border border-neutral-800 bg-neutral-950 p-4">
+                  <div className="flex min-w-0 flex-wrap items-center gap-2"><p className="min-w-0 break-words text-sm font-medium text-neutral-100">{member.name || 'Name not provided'}</p>{member.user_id === activeTeam.leader_user_id && <Badge variant="amber"><Crown className="h-3 w-3" />Leader</Badge>}</div>
+                  <p className="mt-2 break-all text-xs text-neutral-400">{member.email || 'Email not provided'}</p>
+                  <p className="mt-2 break-words text-xs text-neutral-400">Roll number: {member.roll_number || 'Not provided'}</p>
+                </li>)}
+              </ul>
+              {!activeTeam.members!.length && <p className="text-sm text-neutral-400">No participants are assigned to this team.</p>}
+            </div>}
         </Modal>
       )}
 

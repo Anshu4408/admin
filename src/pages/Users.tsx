@@ -188,8 +188,8 @@ export const UsersPage: React.FC = () => {
         )}
 
         {/* Filter Bar */}
-        <div className="bg-neutral-900 border border-neutral-800/80 rounded-xl p-4 flex flex-col md:flex-row gap-3 items-center justify-between">
-          <div className="relative flex-1 w-full">
+        <div className="bg-neutral-900 border border-neutral-800/80 rounded-xl filter-bar p-4 flex flex-wrap gap-3 items-center">
+          <div className="relative min-w-0 flex-[1_1_18rem] w-full">
             <Search className="w-4 h-4 text-neutral-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
@@ -200,7 +200,7 @@ export const UsersPage: React.FC = () => {
             />
           </div>
 
-          <div className="flex flex-wrap items-center gap-2.5 w-full md:w-auto">
+          <div className="flex flex-wrap items-center gap-2.5 w-full xl:w-auto">
             <div className="flex items-center gap-1.5 text-xs text-neutral-400 font-medium">
               <Filter className="w-3.5 h-3.5" />
               <span>Filters:</span>
@@ -249,9 +249,9 @@ export const UsersPage: React.FC = () => {
 
         {/* Users Table */}
         <div className="bg-neutral-900 border border-neutral-800/80 rounded-xl overflow-hidden">
-          <p className="border-b border-neutral-800 px-4 py-2 text-xs text-neutral-500 sm:hidden">Scroll sideways to see all columns and actions.</p>
-          <div className="overflow-x-auto overscroll-x-contain" role="region" aria-label="Scrollable records" tabIndex={0}>
-            <table className="min-w-[740px] w-full text-left text-xs">
+
+          <div className="record-list min-w-0">
+            <table role="table" className="record-table w-full text-left text-xs">
               <thead className="bg-neutral-950 text-neutral-300 border-b border-neutral-800 uppercase tracking-wider text-xs font-semibold">
                 <tr>
                   <th className="py-3.5 px-5">Participant</th>
@@ -287,7 +287,7 @@ export const UsersPage: React.FC = () => {
                 ) : (
                   users.map((user) => (
                     <tr key={user.user_id} className="hover:bg-neutral-950/80 transition-colors">
-                      <td className="py-3.5 px-5">
+                      <td data-label="Participant" className="py-3.5 px-5">
                         <div className="flex items-center gap-3">
                           {user.pfp ? (
                             <img src={user.pfp} alt={user.name} className="w-8 h-8 rounded-full object-cover ring-1 ring-neutral-800" />
@@ -303,22 +303,22 @@ export const UsersPage: React.FC = () => {
                         </div>
                       </td>
 
-                      <td className="py-3.5 px-4 font-mono font-medium text-neutral-200">
+                      <td data-label="Roll Number" className="py-3.5 px-4 font-mono font-medium text-neutral-200">
                         {user.roll_number || <span className="text-neutral-400 italic font-sans font-normal">None</span>}
                       </td>
 
-                      <td className="py-3.5 px-4 text-neutral-200">
+                      <td data-label="Hostel / Mess" className="py-3.5 px-4 text-neutral-200">
                         <div>
                           <span className="font-medium">{user.hostel || '—'}</span>
                           {user.mess && <span className="text-xs text-neutral-400 block">{user.mess}</span>}
                         </div>
                       </td>
 
-                      <td className="py-3.5 px-4">
+                      <td data-label="Gender" className="py-3.5 px-4">
                         <span className="capitalize font-medium">{user.gender || '—'}</span>
                       </td>
 
-                      <td className="py-3.5 px-4">
+                      <td data-label="Team Assignment" className="py-3.5 px-4">
                         {user.team_id ? (
                           <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-500/10 border border-indigo-500/25 text-indigo-400 font-mono text-xs font-semibold">
                             <span>{user.team_id}</span>
@@ -335,11 +335,11 @@ export const UsersPage: React.FC = () => {
                         )}
                       </td>
 
-                      <td className="py-3.5 px-4 text-xs text-neutral-400 font-medium">
+                      <td data-label="Registered" className="py-3.5 px-4 text-xs text-neutral-400 font-medium">
                         {new Date(user.created_at).toLocaleDateString()}
                       </td>
 
-                      <td className="py-3.5 px-5 text-right">
+                      <td data-label="Actions" className="py-3.5 px-5 text-right">
                         <div className="flex items-center justify-end gap-1.5">
                           <button
                             onClick={() => handleEditClick(user)}

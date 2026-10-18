@@ -40,8 +40,6 @@
 .admin-content .overflow-x-auto { max-width: 100%; }
 @media (max-width: 639px) {
   .admin-content main > .flex.items-center.justify-between { flex-wrap: wrap; gap: 1rem; }
-  .admin-content main .flex.items-center.gap-2.border-b { overflow-x: auto; }
-  .admin-content main .flex.items-center.gap-2.border-b > button { flex-shrink: 0; }
   .admin-content main .flex.flex-wrap > select { flex: 1; min-width: 130px; }
   .admin-content main .flex.items-center.justify-between.border-t { flex-wrap: wrap; gap: 1rem; }
   .admin-content main button:not([title]) { min-height: 40px; }
@@ -50,4 +48,37 @@
 .admin-content td { max-width: 24rem; }
 @media (max-width: 639px) {
   input, select, textarea { font-size: 16px !important; }
+}
+
+/* Keep content inside its column without breaking badges or hiding actions. */
+.admin-content, .admin-content main, .admin-toolbar, .filter-bar { min-width: 0; }
+.filter-bar > *, .admin-toolbar > *, .record-table td > * { min-width: 0; max-width: 100%; }
+.filter-bar select { min-width: 0; max-width: 100%; }
+.record-table { table-layout: fixed; border-collapse: collapse; }
+.record-table th { white-space: normal; overflow-wrap: anywhere; }
+.record-table td { vertical-align: top; }
+.record-table td p, .record-table td span { overflow-wrap: anywhere; }
+.record-table td .flex { min-width: 0; }
+.record-table td button, .record-table td svg { flex-shrink: 0; }
+.record-table td [data-badge] { white-space: nowrap; overflow-wrap: normal; }
+.record-table td[data-label='Actions'] > div { flex-wrap: wrap; }
+
+/* Stack complete, labelled records on phones and tablets; no sideways scrolling. */
+@media (max-width: 1279px) {
+  .record-table, .record-table tbody { display: block; width: 100%; min-width: 0; }
+  .record-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .record-table tbody > tr { display: grid; grid-template-columns: minmax(0, 1fr); padding: 1rem; gap: .875rem; }
+  .record-table tbody > tr + tr { border-top: 1px solid #262626; }
+  .record-table td { display: grid; grid-template-columns: minmax(0, 1fr); gap: .375rem; width: 100%; max-width: none; min-width: 0; padding: 0; text-align: left; }
+  .record-table td[data-label]::before { content: attr(data-label); color: #a3a3a3; font-size: 10px; letter-spacing: .07em; text-transform: uppercase; }
+  .record-table td[colspan] { padding: 1rem 0; }
+  .record-table td > * { justify-self: start; }
+  .record-table td > .flex { flex-wrap: wrap; }
+  .record-table td[data-label='Actions'] > div { justify-content: flex-start; }
+  .record-table td[data-label='Actions'] { border-top: 1px solid #262626; padding-top: .75rem; }
+  .record-table td p, .record-table td span { max-width: 100%; }
+}
+@media (min-width: 640px) and (max-width: 1279px) {
+  .record-table tbody > tr { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem 1.5rem; padding: 1.25rem; }
+  .record-table td[data-label='Actions'], .record-table td[colspan] { grid-column: 1 / -1; }
 }

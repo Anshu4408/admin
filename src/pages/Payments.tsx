@@ -100,8 +100,8 @@ export const PaymentsPage: React.FC = () => {
         )}
 
         {/* Filter Bar */}
-        <div className="bg-neutral-900 border border-neutral-800/80 rounded-xl p-4 flex flex-col md:flex-row gap-3 items-center justify-between">
-          <div className="relative flex-1 w-full">
+        <div className="bg-neutral-900 border border-neutral-800/80 rounded-xl filter-bar p-4 flex flex-wrap gap-3 items-center">
+          <div className="relative min-w-0 flex-[1_1_18rem] w-full">
             <Search className="w-4 h-4 text-neutral-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
@@ -112,7 +112,7 @@ export const PaymentsPage: React.FC = () => {
             />
           </div>
 
-          <div className="flex flex-wrap items-center gap-2.5 w-full md:w-auto">
+          <div className="flex flex-wrap items-center gap-2.5 w-full xl:w-auto">
             <div className="flex items-center gap-1.5 text-xs text-neutral-400 font-medium">
               <Filter className="w-3.5 h-3.5" />
               <span>Status:</span>
@@ -145,9 +145,9 @@ export const PaymentsPage: React.FC = () => {
 
         {/* Payments Table */}
         <div className="bg-neutral-900 border border-neutral-800/80 rounded-xl overflow-hidden">
-          <p className="border-b border-neutral-800 px-4 py-2 text-xs text-neutral-500 sm:hidden">Scroll sideways to see all columns and actions.</p>
-          <div className="overflow-x-auto overscroll-x-contain" role="region" aria-label="Scrollable records" tabIndex={0}>
-            <table className="min-w-[740px] w-full text-left text-xs">
+
+          <div className="record-list min-w-0">
+            <table role="table" className="record-table w-full text-left text-xs">
               <thead className="bg-neutral-950 text-neutral-300 border-b border-neutral-800 uppercase tracking-wider text-xs font-semibold">
                 <tr>
                   <th className="py-3.5 px-5">Order / Payment ID</th>
@@ -183,7 +183,7 @@ export const PaymentsPage: React.FC = () => {
                 ) : (
                   payments.map((p) => (
                     <tr key={p.payment_id} className="hover:bg-neutral-950/80 transition-colors">
-                      <td className="py-3.5 px-5">
+                      <td data-label="Order / Payment ID" className="py-3.5 px-5">
                         <div className="flex items-center gap-1.5 font-mono">
                           <span className="font-semibold text-neutral-50">{p.order_id || p.payment_id}</span>
                           <button
@@ -199,38 +199,38 @@ export const PaymentsPage: React.FC = () => {
                         </div>
                       </td>
 
-                      <td className="py-3.5 px-4">
+                      <td data-label="Team Squad" className="py-3.5 px-4">
                         <div>
                           <p className="font-semibold text-neutral-100">{p.team_name || p.team_id}</p>
                           <span className="text-xs text-neutral-400 font-mono font-medium">{p.team_id}</span>
                         </div>
                       </td>
 
-                      <td className="py-3.5 px-4">
+                      <td data-label="Paid By" className="py-3.5 px-4">
                         <div>
                           <p className="font-medium text-neutral-100">{p.user_name || 'System / Direct'}</p>
                           {p.user_email && <p className="text-xs text-neutral-400">{p.user_email}</p>}
                         </div>
                       </td>
 
-                      <td className="py-3.5 px-4">
+                      <td data-label="Amount" className="py-3.5 px-4">
                         <span className="font-semibold text-neutral-50 text-sm">
                           ₹{p.amount?.toLocaleString('en-IN')}
                         </span>
                       </td>
 
-                      <td className="py-3.5 px-4">
+                      <td data-label="Status" className="py-3.5 px-4">
                         <StatusBadge status={p.payment_status} />
                       </td>
 
-                      <td className="py-3.5 px-4 font-mono text-xs text-neutral-300 font-medium">
+                      <td data-label="Gateway Reference" className="py-3.5 px-4 font-mono text-xs text-neutral-300 font-medium">
                         {p.transaction_id || <span className="italic text-neutral-400 font-normal">Automated Gateway</span>}
                         {p.raw_webhook_data && (
                           <span className="block text-xs text-neutral-400 truncate max-w-xs">{p.raw_webhook_data}</span>
                         )}
                       </td>
 
-                      <td className="py-3.5 px-5 text-right text-xs text-neutral-400 font-medium">
+                      <td data-label="Date" className="py-3.5 px-5 text-right text-xs text-neutral-400 font-medium">
                         <div>
                           <span className="text-neutral-100 font-semibold block">{new Date(p.created_at).toLocaleDateString()}</span>
                           <span>{new Date(p.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
