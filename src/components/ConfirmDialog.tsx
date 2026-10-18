@@ -28,15 +28,15 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={title} maxWidth="sm">
       <div className="flex items-start gap-3.5">
-        <div className={`p-2.5 rounded-xl ${isDanger ? 'bg-rose-500/10 text-rose-400 border border-rose-500/25' : 'bg-amber-500/10 text-amber-400 border border-amber-500/25'}`}>
+        <div className={`shrink-0 p-2.5 rounded-xl ${isDanger ? 'bg-rose-500/10 text-rose-400 border border-rose-500/25' : 'bg-amber-500/10 text-amber-400 border border-amber-500/25'}`}>
           <AlertTriangle className="w-5 h-5" />
         </div>
-        <div className="flex-1">
+        <div className="min-w-0 flex-1">
           <p className="text-xs text-neutral-300 leading-relaxed">{message}</p>
         </div>
       </div>
 
-      <div className="mt-6 flex items-center justify-end gap-2.5">
+      <div className="mt-6 flex flex-wrap items-center justify-end gap-2.5">
         <button
           type="button"
           onClick={onClose}

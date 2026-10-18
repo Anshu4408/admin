@@ -17,16 +17,16 @@ export const Sidebar: React.FC = () => {
   return (
     <aside className="sticky top-0 z-40 w-full border-b border-neutral-800 bg-neutral-950 lg:fixed lg:bottom-0 lg:left-0 lg:w-60 lg:border-b-0 lg:border-r lg:flex lg:flex-col">
       <div className="flex h-16 shrink-0 items-center justify-between gap-3 border-b border-neutral-800 px-4 lg:h-24 lg:px-6">
-        <NavLink to="/" onClick={() => setOpen(false)} className="flex items-center gap-3" aria-label="TransfiNITTe admin overview">
-          <img src="/motif.svg" alt="" className="h-7 w-10 object-contain" />
+        <NavLink to="/" onClick={() => setOpen(false)} className="flex min-w-0 items-center gap-3" aria-label="TransfiNITTe admin overview">
+          <img src="/motif.svg" alt="" className="h-7 w-10 shrink-0 object-contain" />
           <div><p className="text-sm font-semibold text-white">TransfiNITTe</p><p className="mt-1 text-[10px] uppercase tracking-[0.16em] text-neutral-400">Administration / 2026</p></div>
         </NavLink>
-        <button type="button" onClick={() => setOpen(!open)} aria-expanded={open} aria-controls="admin-navigation" aria-label={open ? 'Close navigation' : 'Open navigation'} className="flex h-11 w-11 items-center justify-center rounded-lg border border-neutral-700 text-neutral-200 lg:hidden">
+        <button type="button" onClick={() => setOpen(!open)} aria-expanded={open} aria-controls="admin-navigation" aria-label={open ? 'Close navigation' : 'Open navigation'} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-neutral-700 text-neutral-200 lg:hidden">
           {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
       </div>
-      <div id="admin-navigation" className={`${open ? 'flex' : 'hidden'} max-h-[calc(100dvh-4rem)] flex-col overflow-y-auto lg:flex lg:max-h-none lg:flex-1`} onKeyDown={e => { if (e.key === 'Escape') setOpen(false); }}>
-        <nav aria-label="Admin navigation" className="flex-1 space-y-1 p-3 lg:pt-6">
+      <div id="admin-navigation" className={`${open ? 'flex' : 'hidden'} min-h-0 max-h-[calc(100dvh-4rem)] flex-col overflow-y-auto lg:flex lg:max-h-none lg:flex-1`} onKeyDown={e => { if (e.key === 'Escape') setOpen(false); }}>
+        <nav aria-label="Admin navigation" className="shrink-0 space-y-1 p-3 lg:pt-6">
           <p className="px-3 pb-3 pt-2 text-[10px] uppercase tracking-[0.16em] text-neutral-500">Workspace</p>
           {navItems.filter(item => item.allowed).map(item => (
             <NavLink key={item.to} to={item.to} end={item.to === '/'} onClick={() => setOpen(false)} className={({ isActive }) => `flex min-h-11 items-center gap-3 rounded-lg border px-3 text-[13px] transition-colors ${isActive ? 'border-neutral-700 bg-neutral-800 text-white' : 'border-transparent text-neutral-400 hover:bg-neutral-900 hover:text-white'}`}>
@@ -34,7 +34,7 @@ export const Sidebar: React.FC = () => {
             </NavLink>
           ))}
         </nav>
-        <div className="space-y-4 border-t border-neutral-800 p-4">
+        <div className="mt-auto shrink-0 space-y-4 border-t border-neutral-800 p-4">
           <div className="flex min-w-0 items-center gap-3">
             {admin?.picture ? <img src={admin.picture} alt="" className="h-9 w-9 shrink-0 rounded-full object-cover" /> : <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-neutral-700 text-sm">{admin?.name?.[0]?.toUpperCase() || 'A'}</div>}
             <div className="min-w-0 flex-1"><p className="truncate text-xs text-neutral-200">{admin?.name || 'Administrator'}</p><p className="mt-1 truncate text-[11px] text-neutral-500" title={admin?.email}>{admin?.email}</p></div>

@@ -58,13 +58,55 @@
 .record-table th { white-space: normal; overflow-wrap: anywhere; }
 .record-table td { vertical-align: top; }
 .record-table td p, .record-table td span { overflow-wrap: anywhere; }
-.record-table td .flex { min-width: 0; }
+.record-table td .flex, .record-table td .flex > * { min-width: 0; }
 .record-table td button, .record-table td svg { flex-shrink: 0; }
 .record-table td [data-badge] { white-space: nowrap; overflow-wrap: normal; }
 .record-table td[data-label='Actions'] > div { flex-wrap: wrap; }
 
+/* Content must be able to shrink inside nested grid and flex layouts. */
+.admin-content main .grid > *, .dialog-content .grid > * { min-width: 0; }
+.admin-content main :where(p, h2, h3, h4),
+.admin-dialog :where(p, span, label, a) { overflow-wrap: anywhere; }
+.dialog-content .flex > * { min-width: 0; }
+.dialog-content :where(svg, input[type='checkbox'], input[type='radio']) { flex-shrink: 0; }
+.admin-dialog button { min-height: 44px; max-width: 100%; }
+.admin-dialog button svg { flex-shrink: 0; }
+.admin-content main img, .admin-dialog img { max-width: 100%; }
+.admin-toolbar > div { min-width: 0; max-width: 100%; }
+.admin-toolbar button { max-width: 100%; }
+
+/* Wide tables reserve readable space for identities and longer references. */
+@media (min-width: 1536px) {
+  .participants-table th:nth-child(1) { width: 26%; }
+  .participants-table th:nth-child(2) { width: 13%; }
+  .participants-table th:nth-child(3) { width: 12%; }
+  .participants-table th:nth-child(4) { width: 9%; }
+  .participants-table th:nth-child(5) { width: 16%; }
+  .participants-table th:nth-child(6) { width: 13%; }
+  .participants-table th:nth-child(7) { width: 11%; }
+  .teams-table th:nth-child(1) { width: 19%; }
+  .teams-table th:nth-child(2) { width: 23%; }
+  .teams-table th:nth-child(3) { width: 10%; }
+  .teams-table th:nth-child(4) { width: 15%; }
+  .teams-table th:nth-child(5) { width: 11%; }
+  .teams-table th:nth-child(6) { width: 10%; }
+  .teams-table th:nth-child(7) { width: 12%; }
+  .admins-table th:nth-child(1) { width: 27%; }
+  .admins-table th:nth-child(2) { width: 13%; }
+  .admins-table th:nth-child(n+3):nth-child(-n+6) { width: 9%; }
+  .admins-table th:nth-child(7), .admins-table th:nth-child(8) { width: 12%; }
+  .submissions-table th:nth-child(1) { width: 11%; }
+  .submissions-table th:nth-child(2) { width: 16%; }
+  .submissions-table th:nth-child(3) { width: 9%; }
+  .submissions-table th:nth-child(4) { width: 10%; }
+  .submissions-table th:nth-child(5) { width: 14%; }
+  .submissions-table th:nth-child(6) { width: 12%; }
+  .submissions-table th:nth-child(7) { width: 16%; }
+  .submissions-table th:nth-child(8) { width: 12%; }
+}
+
 /* Stack complete, labelled records on phones and tablets; no sideways scrolling. */
-@media (max-width: 1279px) {
+@media (max-width: 1535px) {
   .record-table, .record-table tbody { display: block; width: 100%; min-width: 0; }
   .record-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
   .record-table tbody > tr { display: grid; grid-template-columns: minmax(0, 1fr); padding: 1rem; gap: .875rem; }
@@ -78,7 +120,7 @@
   .record-table td[data-label='Actions'] { border-top: 1px solid #262626; padding-top: .75rem; }
   .record-table td p, .record-table td span { max-width: 100%; }
 }
-@media (min-width: 640px) and (max-width: 1279px) {
+@media (min-width: 640px) and (max-width: 1535px) {
   .record-table tbody > tr { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem 1.5rem; padding: 1.25rem; }
   .record-table td[data-label='Actions'], .record-table td[colspan] { grid-column: 1 / -1; }
 }

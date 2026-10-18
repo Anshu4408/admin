@@ -639,7 +639,7 @@ export const QRPaymentsPage: React.FC = () => {
             <div className="bg-neutral-900 border border-neutral-800/80 rounded-xl overflow-hidden">
 
           <div className="record-list min-w-0">
-                <table role="table" className="record-table w-full text-left text-xs">
+                <table role="table" className="record-table submissions-table w-full text-left text-xs">
                   <thead className="bg-neutral-950 text-neutral-300 border-b border-neutral-800 uppercase tracking-wider text-xs font-semibold">
                     <tr>
                       <th className="py-3.5 px-5">Team ID</th>
@@ -688,7 +688,7 @@ export const QRPaymentsPage: React.FC = () => {
                             {/* Team ID */}
                             <td data-label="Team ID" className="py-3.5 px-5">
                               <div className="flex items-center gap-1.5 font-mono">
-                                <span className="font-semibold text-neutral-50">{sub.team_id}</span>
+                                <span className="whitespace-nowrap font-semibold text-neutral-50">{sub.team_id}</span>
                                 <button
                                   onClick={() => copyToClipboard(sub.team_id)}
                                   className="p-0.5 text-neutral-400 hover:text-brand-600 transition-colors"
@@ -968,7 +968,7 @@ export const QRPaymentsPage: React.FC = () => {
                   ) : (
                     <>
                       <QrCode className="mx-auto h-10 w-10 text-neutral-400" />
-                      <div className="flex text-xs text-neutral-300 justify-center">
+                      <div className="flex flex-wrap gap-y-1 text-xs text-neutral-300 justify-center">
                         <label
                           htmlFor="qr-file-upload"
                           className="relative cursor-pointer rounded-md font-semibold text-brand-600 hover:text-brand-500 focus-within:outline-none"
@@ -1013,7 +1013,7 @@ export const QRPaymentsPage: React.FC = () => {
             </div>
 
             {/* Modal Actions */}
-            <div className="pt-4 flex items-center justify-end gap-2 border-t border-neutral-800">
+            <div className="pt-4 flex flex-wrap items-center justify-end gap-2 border-t border-neutral-800">
               <button
                 type="button"
                 onClick={() => setIsUploadModalOpen(false)}
@@ -1075,7 +1075,7 @@ export const QRPaymentsPage: React.FC = () => {
               <input type="checkbox" required checked={reverseConfirmed} disabled={isReversing} onChange={(event) => setReverseConfirmed(event.target.checked)} className="mt-0.5" />
               <span>I confirm that Team <strong>{reverseTarget.team_id}</strong> should be marked unpaid.</span>
             </label>
-            <div className="flex justify-end gap-2 border-t border-neutral-800 pt-4">
+            <div className="flex flex-wrap justify-end gap-2 border-t border-neutral-800 pt-4">
               <button type="button" disabled={isReversing} onClick={() => setReverseTarget(null)} className="px-4 py-2 text-xs font-semibold rounded-xl text-neutral-300 hover:bg-neutral-800 disabled:opacity-50">Cancel</button>
               <button type="submit" disabled={isReversing || !reverseConfirmed || !reverseReason.trim()} className="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-xl bg-rose-600 hover:bg-rose-500 text-white disabled:opacity-50">
                 {isReversing && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
@@ -1114,7 +1114,7 @@ export const QRPaymentsPage: React.FC = () => {
               />
             </div>
 
-            <div className="pt-4 flex items-center justify-end gap-2 border-t border-neutral-800">
+            <div className="pt-4 flex flex-wrap items-center justify-end gap-2 border-t border-neutral-800">
               <button
                 type="button"
                 onClick={() => setRejectPaymentTarget(null)}
@@ -1171,7 +1171,7 @@ export const QRPaymentsPage: React.FC = () => {
               </p>
             </div>
 
-            <div className="pt-4 flex items-center justify-end gap-2 border-t border-neutral-800">
+            <div className="pt-4 flex flex-wrap items-center justify-end gap-2 border-t border-neutral-800">
               <button
                 type="button"
                 onClick={() => setIsManualTeamModalOpen(false)}
@@ -1215,7 +1215,7 @@ export const QRPaymentsPage: React.FC = () => {
               alt={lightboxImage.title}
               className="max-h-[70vh] max-w-full object-contain rounded-xl border border-neutral-800 bg-neutral-950"
             />
-            <div className="mt-4 flex items-center justify-between w-full pt-3 border-t border-neutral-800">
+            <div className="mt-4 flex flex-wrap gap-3 items-center justify-between w-full pt-3 border-t border-neutral-800">
               <a
                 href={lightboxImage.url}
                 target="_blank"

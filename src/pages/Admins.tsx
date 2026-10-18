@@ -213,7 +213,7 @@ export const AdminsPage: React.FC = () => {
         <div className="bg-neutral-900 border border-neutral-800/80 rounded-xl overflow-hidden">
 
           <div className="record-list min-w-0">
-            <table role="table" className="record-table w-full text-left text-xs">
+            <table role="table" className="record-table admins-table w-full text-left text-xs">
               <thead className="bg-neutral-950 text-neutral-300 border-b border-neutral-800 uppercase tracking-wider text-xs font-semibold">
                 <tr>
                   <th className="py-3.5 px-5">Administrator</th>
@@ -253,9 +253,9 @@ export const AdminsPage: React.FC = () => {
                         <td data-label="Administrator" className="py-3.5 px-5">
                           <div className="flex items-center gap-3">
                             {adm.picture ? (
-                              <img src={adm.picture} alt={adm.name} className="w-8 h-8 rounded-full object-cover ring-1 ring-neutral-800" />
+                              <img src={adm.picture} alt={adm.name} className="w-8 h-8 shrink-0 rounded-full object-cover ring-1 ring-neutral-800" />
                             ) : (
-                              <div className="w-8 h-8 rounded-full bg-brand-50 border border-brand-100 flex items-center justify-center font-semibold text-xs text-brand-700">
+                              <div className="w-8 h-8 shrink-0 rounded-full bg-brand-50 border border-brand-100 flex items-center justify-center font-semibold text-xs text-brand-700">
                                 {adm.name ? adm.name[0].toUpperCase() : 'A'}
                               </div>
                             )}
@@ -486,7 +486,7 @@ export const AdminsPage: React.FC = () => {
               </div>
             )}
 
-            <div className="pt-4 flex items-center justify-end gap-2 border-t border-neutral-800">
+            <div className="pt-4 flex flex-wrap items-center justify-end gap-2 border-t border-neutral-800">
               <button
                 type="button"
                 onClick={() => setIsAddModalOpen(false)}
@@ -599,7 +599,7 @@ export const AdminsPage: React.FC = () => {
               </label>
             </div>
 
-            <div className="pt-4 flex items-center justify-end gap-2 border-t border-neutral-800">
+            <div className="pt-4 flex flex-wrap items-center justify-end gap-2 border-t border-neutral-800">
               <button
                 type="button"
                 onClick={() => setEditingAdmin(null)}

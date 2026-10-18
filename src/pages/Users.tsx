@@ -8,10 +8,9 @@ import {
   Trash2,
   UserX,
   Loader2,
-  ChevronLeft,
-  ChevronRight,
 } from 'lucide-react';
 import { Navbar } from '../components/Navbar';
+import { Pagination as PaginationControls } from '../components/Pagination';
 import { Modal } from '../components/Modal';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { EmptyState } from '../components/EmptyState';
@@ -251,7 +250,7 @@ export const UsersPage: React.FC = () => {
         <div className="bg-neutral-900 border border-neutral-800/80 rounded-xl overflow-hidden">
 
           <div className="record-list min-w-0">
-            <table role="table" className="record-table w-full text-left text-xs">
+            <table role="table" className="record-table participants-table w-full text-left text-xs">
               <thead className="bg-neutral-950 text-neutral-300 border-b border-neutral-800 uppercase tracking-wider text-xs font-semibold">
                 <tr>
                   <th className="py-3.5 px-5">Participant</th>
@@ -290,9 +289,9 @@ export const UsersPage: React.FC = () => {
                       <td data-label="Participant" className="py-3.5 px-5">
                         <div className="flex items-center gap-3">
                           {user.pfp ? (
-                            <img src={user.pfp} alt={user.name} className="w-8 h-8 rounded-full object-cover ring-1 ring-neutral-800" />
+                            <img src={user.pfp} alt={user.name} className="w-8 h-8 shrink-0 rounded-full object-cover ring-1 ring-neutral-800" />
                           ) : (
-                            <div className="w-8 h-8 rounded-full bg-brand-50 border border-brand-100 flex items-center justify-center font-semibold text-xs text-brand-700">
+                            <div className="w-8 h-8 shrink-0 rounded-full bg-brand-50 border border-brand-100 flex items-center justify-center font-semibold text-xs text-brand-700">
                               {user.name ? user.name[0].toUpperCase() : 'U'}
                             </div>
                           )}
@@ -321,7 +320,7 @@ export const UsersPage: React.FC = () => {
                       <td data-label="Team Assignment" className="py-3.5 px-4">
                         {user.team_id ? (
                           <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-500/10 border border-indigo-500/25 text-indigo-400 font-mono text-xs font-semibold">
-                            <span>{user.team_id}</span>
+                            <span className="whitespace-nowrap">{user.team_id}</span>
                             <button
                               onClick={() => handleRemoveFromTeam(user)}
                               title="Remove from this team"
@@ -365,58 +364,7 @@ export const UsersPage: React.FC = () => {
           </div>
 
           {/* Pagination Footer */}
-          {pagination.total > 0 && (
-            <div className="p-4 border-t border-neutral-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-neutral-400 font-medium">
-              <span>
-                Showing <strong className="text-neutral-50 font-semibold">{(pagination.page - 1) * pagination.limit + 1}</strong> to{' '}
-                <strong className="text-neutral-50 font-semibold">{Math.min(pagination.page * pagination.limit, pagination.total)}</strong> of{' '}
-                <strong className="text-neutral-50 font-semibold">{pagination.total}</strong> participants
-              </span>
-
-              <div className="flex items-center gap-1.5">
-                <button
-                  onClick={() => fetchUsers(pagination.page - 1)}
-                  disabled={pagination.page <= 1}
-                  className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-neutral-800 bg-neutral-900 text-neutral-200 hover:bg-neutral-950 disabled:opacity-40 disabled:cursor-not-allowed transition-colors font-semibold"
-                >
-                  <ChevronLeft className="w-3.5 h-3.5" />
-                  <span>Previous</span>
-                </button>
-
-                <div className="flex items-center gap-1 px-1">
-                  {Array.from({ length: pagination.pages }, (_, i) => i + 1)
-                    .filter((p) => p === 1 || p === pagination.pages || Math.abs(p - pagination.page) <= 1)
-                    .map((p, idx, arr) => {
-                      const showEllipsisBefore = idx > 0 && p - arr[idx - 1] > 1;
-                      return (
-                        <React.Fragment key={p}>
-                          {showEllipsisBefore && <span className="px-1 text-neutral-400">...</span>}
-                          <button
-                            onClick={() => fetchUsers(p)}
-                            className={`min-w-8 h-8 px-2.5 rounded-lg text-xs font-semibold transition-colors ${
-                              p === pagination.page
-                                ? 'bg-brand-600 text-white '
-                                : 'text-neutral-300 hover:bg-neutral-800'
-                            }`}
-                          >
-                            {p}
-                          </button>
-                        </React.Fragment>
-                      );
-                    })}
-                </div>
-
-                <button
-                  onClick={() => fetchUsers(pagination.page + 1)}
-                  disabled={pagination.page >= pagination.pages}
-                  className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-neutral-800 bg-neutral-900 text-neutral-200 hover:bg-neutral-950 disabled:opacity-40 disabled:cursor-not-allowed transition-colors font-semibold"
-                >
-                  <span>Next</span>
-                  <ChevronRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            </div>
-          )}
+          <PaginationControls pagination={pagination} onPageChange={fetchUsers} noun="participants" />
         </div>
       </main>
 
@@ -514,7 +462,7 @@ export const UsersPage: React.FC = () => {
               />
             </div>
 
-            <div className="pt-4 flex items-center justify-end gap-2 border-t border-neutral-800">
+            <div className="pt-4 flex flex-wrap items-center justify-end gap-2 border-t border-neutral-800">
               <button
                 type="button"
                 onClick={() => setEditingUser(null)}
