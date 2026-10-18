@@ -18,7 +18,8 @@
   ::selection { background: #e5e5e5; color: #0a0a0a; }
   :focus-visible { outline: 2px solid #d4d4d4; outline-offset: 3px; }
   button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
-  button { touch-action: manipulation; }
+  button { display: inline-flex; align-items: center; justify-content: center; gap: .375rem; max-width: 100%; vertical-align: middle; touch-action: manipulation; }
+  button svg { display: block; flex-shrink: 0; }
   button:disabled { cursor: not-allowed; }
   input, select, textarea { max-width: 100%; }
   input:not([type='checkbox']):not([type='radio']):not([type='file']), select { min-height: 42px; }
@@ -56,9 +57,10 @@
 .filter-bar select { min-width: 0; max-width: 100%; }
 .record-table { table-layout: fixed; border-collapse: collapse; }
 .record-table th { white-space: normal; overflow-wrap: anywhere; }
-.record-table td { vertical-align: top; }
+.record-table td { vertical-align: middle; }
+.submissions-table td { vertical-align: top; }
 .record-table td p, .record-table td span { overflow-wrap: anywhere; }
-.record-table td .flex, .record-table td .flex > * { min-width: 0; }
+.record-table td .flex, .record-table td .flex > :not(button):not(svg) { min-width: 0; }
 .record-table td button, .record-table td svg { flex-shrink: 0; }
 .record-table td [data-badge] { white-space: nowrap; overflow-wrap: normal; }
 .record-table td[data-label='Actions'] > div { flex-wrap: wrap; }
@@ -74,6 +76,24 @@
 .admin-content main img, .admin-dialog img { max-width: 100%; }
 .admin-toolbar > div { min-width: 0; max-width: 100%; }
 .admin-toolbar button { max-width: 100%; }
+
+/* Icon controls keep a square hit area, even inside shrinking table cells. */
+button[data-icon-button], .admin-content button[data-icon-button], .admin-dialog button[data-icon-button] {
+  align-items: center; justify-content: center;
+  width: 44px; height: 44px; min-width: 44px; min-height: 44px;
+  padding: 0; gap: 0; flex: 0 0 auto; line-height: 1;
+}
+.admin-content svg, .admin-dialog svg, [data-badge] > * { flex-shrink: 0; }
+.admin-toolbar button, .dialog-content button, .record-table td[data-label='Actions'] button {
+  justify-content: center; text-align: center; line-height: 1.25rem;
+}
+.admin-toolbar button > span, .dialog-content button > span { min-width: 0; overflow-wrap: anywhere; }
+.admin-toolbar button:not([data-icon-button]), .dialog-content button:not([data-icon-button]) { min-height: 44px; }
+.record-table td[data-label='Actions'] button:not([data-icon-button]) { min-height: 40px; }
+[data-badge] { vertical-align: middle; line-height: 1.25rem; }
+.notification { align-items: flex-start; gap: .75rem; }
+.notification > span { min-width: 0; align-self: center; overflow-wrap: anywhere; }
+.notification button { margin: -.5rem -.5rem -.5rem 0; }
 
 /* Wide tables reserve readable space for identities and longer references. */
 @media (min-width: 1536px) {

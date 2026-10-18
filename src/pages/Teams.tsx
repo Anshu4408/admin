@@ -191,14 +191,14 @@ export const TeamsPage: React.FC = () => {
       <main className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 max-w-[1600px] w-full mx-auto space-y-6">
         {notification && (
           <div
-            className={`p-4 rounded-xl text-xs font-semibold flex items-center justify-between border ${
+            className={`notification p-4 rounded-xl text-xs font-semibold flex items-center justify-between border ${
               notification.type === 'success'
                 ? 'bg-emerald-500/10 border-emerald-500/25 text-emerald-400'
                 : 'bg-rose-500/10 border-rose-500/25 text-rose-400'
             }`}
           >
             <span>{notification.message}</span>
-            <button onClick={() => setNotification(null)} className="opacity-70 hover:opacity-100">
+            <button data-icon-button aria-label="Dismiss notification" onClick={() => setNotification(null)} className="rounded-lg opacity-70 hover:bg-neutral-800 hover:opacity-100">
               &times;
             </button>
           </div>
@@ -315,10 +315,10 @@ export const TeamsPage: React.FC = () => {
                             </button>
                             <div className="flex items-center gap-1.5 mt-0.5">
                               <span className="font-mono text-xs text-neutral-400 font-medium">{team.team_id}</span>
-                              <button
+                              <button data-icon-button
                                 onClick={() => copyToClipboard(team.team_id)}
                                 title="Copy Team ID"
-                                className="p-0.5 text-neutral-400 hover:text-brand-600 transition-colors"
+                                className="p-0.5 rounded-lg text-neutral-400 hover:bg-neutral-800 hover:text-brand-600 transition-colors"
                               >
                                 {copiedTeamId === team.team_id ? (
                                   <Check className="w-3 h-3 text-emerald-400" />
@@ -371,7 +371,7 @@ export const TeamsPage: React.FC = () => {
 
                         <td data-label="Actions" className="py-3.5 px-5 text-right">
                           <div className="flex items-center justify-end gap-1.5">
-                            <button
+                            <button data-icon-button
                               onClick={() => {
                                 setEditError(null);
                                 setEditingTeam(team);
@@ -387,7 +387,7 @@ export const TeamsPage: React.FC = () => {
                             >
                               <Edit2 className="w-3.5 h-3.5" />
                             </button>
-                            <button
+                            <button data-icon-button
                               onClick={() => setDeletingTeam(team)}
                               title="Disband squad"
                               className="p-1.5 rounded-lg text-neutral-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"

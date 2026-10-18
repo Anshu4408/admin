@@ -309,7 +309,7 @@ export const QRPaymentsPage: React.FC = () => {
         subtitle="Upload and manage rotating payment QR codes and verify participant UTR transactions"
         actions={
           <div className="flex items-center gap-2">
-            <button
+            <button data-icon-button
               onClick={() => {
                 fetchQRCodes();
                 fetchSubmissions();
@@ -340,14 +340,14 @@ export const QRPaymentsPage: React.FC = () => {
       <main className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 max-w-[1600px] w-full mx-auto space-y-6">
         {notification && (
           <div
-            className={`p-4 rounded-xl text-xs font-semibold flex items-center justify-between border ${
+            className={`notification p-4 rounded-xl text-xs font-semibold flex items-center justify-between border ${
               notification.type === 'success'
                 ? 'bg-emerald-500/10 border-emerald-500/25 text-emerald-400'
                 : 'bg-rose-500/10 border-rose-500/25 text-rose-400'
             }`}
           >
             <span>{notification.message}</span>
-            <button onClick={() => setNotification(null)} className="opacity-70 hover:opacity-100">
+            <button data-icon-button aria-label="Dismiss notification" onClick={() => setNotification(null)} className="rounded-lg opacity-70 hover:bg-neutral-800 hover:opacity-100">
               &times;
             </button>
           </div>
@@ -364,7 +364,7 @@ export const QRPaymentsPage: React.FC = () => {
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
               </span>
             </div>
-            <div className="flex items-baseline gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <span className="text-xl font-semibold text-neutral-50">
                 Slot {activeSlot !== null ? activeSlot : 0}
               </span>
@@ -380,7 +380,7 @@ export const QRPaymentsPage: React.FC = () => {
           {/* Configured Slots */}
           <div className="bg-neutral-900 border border-neutral-800/80 rounded-xl p-4">
             <div className="text-xs text-neutral-400 font-medium mb-1">Configured QR Slots</div>
-            <div className="flex items-baseline gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <span className="text-xl font-semibold text-neutral-50">{qrCodes.length}</span>
               <span className="text-xs text-neutral-400">of 4 total slots</span>
             </div>
@@ -390,7 +390,7 @@ export const QRPaymentsPage: React.FC = () => {
           {/* Pending Submissions */}
           <div className="bg-neutral-900 border border-neutral-800/80 rounded-xl p-4">
             <div className="text-xs text-neutral-400 font-medium mb-1">Pending Verification</div>
-            <div className="flex items-baseline gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <span className="text-xl font-semibold text-amber-400">{pendingCount}</span>
               <span className="text-xs text-neutral-400">submissions</span>
             </div>
@@ -400,7 +400,7 @@ export const QRPaymentsPage: React.FC = () => {
           {/* Verified Payments */}
           <div className="bg-neutral-900 border border-neutral-800/80 rounded-xl p-4">
             <div className="text-xs text-neutral-400 font-medium mb-1">Verified via QR</div>
-            <div className="flex items-baseline gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <span className="text-xl font-semibold text-emerald-400">{paidCount}</span>
               <span className="text-xs text-neutral-400">teams marked PAID</span>
             </div>
@@ -412,7 +412,7 @@ export const QRPaymentsPage: React.FC = () => {
         <div className="qr-tabs flex flex-col gap-1 border-b border-neutral-800 sm:flex-row sm:gap-4">
           <button
             onClick={() => setActiveTab('qrs')}
-            className={`flex min-w-0 flex-wrap items-center gap-2 px-3 py-3 text-left text-xs font-semibold border-b-2 transition-all ${
+            className={`flex min-w-0 flex-wrap items-center justify-start gap-2 px-3 py-3 text-left text-xs font-semibold border-b-2 transition-all ${
               activeTab === 'qrs'
                 ? 'border-brand-600 text-brand-600'
                 : 'border-transparent text-neutral-400 hover:text-neutral-100'
@@ -427,7 +427,7 @@ export const QRPaymentsPage: React.FC = () => {
 
           <button
             onClick={() => setActiveTab('submissions')}
-            className={`flex min-w-0 flex-wrap items-center gap-2 px-3 py-3 text-left text-xs font-semibold border-b-2 transition-all ${
+            className={`flex min-w-0 flex-wrap items-center justify-start gap-2 px-3 py-3 text-left text-xs font-semibold border-b-2 transition-all ${
               activeTab === 'submissions'
                 ? 'border-brand-600 text-brand-600'
                 : 'border-transparent text-neutral-400 hover:text-neutral-100'
@@ -499,7 +499,7 @@ export const QRPaymentsPage: React.FC = () => {
                         </div>
                         <button
                           onClick={() => handleOpenUploadModal(slotIdx)}
-                          className="text-xs text-brand-600 hover:text-brand-700 font-semibold flex items-center gap-1 p-1 hover:bg-brand-50 rounded-lg transition-colors"
+                          className="text-xs text-brand-600 hover:text-brand-700 font-semibold flex items-center gap-1 px-2 py-2 min-h-11 hover:bg-brand-50 rounded-lg transition-colors"
                         >
                           <Edit2 className="w-3.5 h-3.5" />
                           <span>{qr ? 'Replace' : 'Upload'}</span>
@@ -557,9 +557,9 @@ export const QRPaymentsPage: React.FC = () => {
                             <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">UPI ID</p>
                             <div className="flex items-center justify-between bg-neutral-950 px-2 py-1 rounded-lg border border-neutral-800/60 font-mono text-xs text-neutral-200">
                               <span className="truncate">{qr.upi_id}</span>
-                              <button
+                              <button data-icon-button
                                 onClick={() => copyToClipboard(qr.upi_id!)}
-                                className="p-0.5 text-neutral-400 hover:text-brand-600 transition-colors"
+                                className="p-0.5 rounded-lg text-neutral-400 hover:bg-neutral-800 hover:text-brand-600 transition-colors"
                                 title="Copy UPI ID"
                               >
                                 {copiedText === qr.upi_id ? (
@@ -689,9 +689,9 @@ export const QRPaymentsPage: React.FC = () => {
                             <td data-label="Team ID" className="py-3.5 px-5">
                               <div className="flex items-center gap-1.5 font-mono">
                                 <span className="whitespace-nowrap font-semibold text-neutral-50">{sub.team_id}</span>
-                                <button
+                                <button data-icon-button
                                   onClick={() => copyToClipboard(sub.team_id)}
-                                  className="p-0.5 text-neutral-400 hover:text-brand-600 transition-colors"
+                                  className="p-0.5 rounded-lg text-neutral-400 hover:bg-neutral-800 hover:text-brand-600 transition-colors"
                                   title="Copy Team ID"
                                 >
                                   {copiedText === sub.team_id ? (
@@ -707,9 +707,9 @@ export const QRPaymentsPage: React.FC = () => {
                             <td data-label="UTR / Transaction Ref" className="py-3.5 px-4">
                               <div className="flex items-center gap-1.5 font-mono bg-neutral-800/80 px-2 py-1 rounded-lg w-fit border border-neutral-800">
                                 <span className="font-semibold text-neutral-50 text-xs">{sub.utr}</span>
-                                <button
+                                <button data-icon-button
                                   onClick={() => copyToClipboard(sub.utr)}
-                                  className="p-0.5 text-neutral-400 hover:text-brand-600 transition-colors"
+                                  className="p-0.5 rounded-lg text-neutral-400 hover:bg-neutral-800 hover:text-brand-600 transition-colors"
                                   title="Copy UTR"
                                 >
                                   {copiedText === sub.utr ? (

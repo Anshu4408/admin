@@ -21,7 +21,7 @@ export const Sidebar: React.FC = () => {
           <img src="/motif.svg" alt="" className="h-7 w-10 shrink-0 object-contain" />
           <div><p className="text-sm font-semibold text-white">TransfiNITTe</p><p className="mt-1 text-[10px] uppercase tracking-[0.16em] text-neutral-400">Administration / 2026</p></div>
         </NavLink>
-        <button type="button" onClick={() => setOpen(!open)} aria-expanded={open} aria-controls="admin-navigation" aria-label={open ? 'Close navigation' : 'Open navigation'} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-neutral-700 text-neutral-200 lg:hidden">
+        <button data-icon-button type="button" onClick={() => setOpen(!open)} aria-expanded={open} aria-controls="admin-navigation" aria-label={open ? 'Close navigation' : 'Open navigation'} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-neutral-700 text-neutral-200 lg:hidden">
           {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
       </div>
@@ -38,7 +38,7 @@ export const Sidebar: React.FC = () => {
           <div className="flex min-w-0 items-center gap-3">
             {admin?.picture ? <img src={admin.picture} alt="" className="h-9 w-9 shrink-0 rounded-full object-cover" /> : <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-neutral-700 text-sm">{admin?.name?.[0]?.toUpperCase() || 'A'}</div>}
             <div className="min-w-0 flex-1"><p className="truncate text-xs text-neutral-200">{admin?.name || 'Administrator'}</p><p className="mt-1 truncate text-[11px] text-neutral-500" title={admin?.email}>{admin?.email}</p></div>
-            <button onClick={() => logout()} aria-label="Sign out" title="Sign out" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-neutral-400 hover:bg-neutral-800 hover:text-white"><LogOut className="h-4 w-4" /></button>
+            <button data-icon-button onClick={() => logout()} aria-label="Sign out" title="Sign out" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-neutral-400 hover:bg-neutral-800 hover:text-white"><LogOut className="h-4 w-4" /></button>
           </div>
         </div>
       </div>

@@ -188,14 +188,14 @@ export const AdminsPage: React.FC = () => {
       <main className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 max-w-[1600px] w-full mx-auto space-y-6">
         {notification && (
           <div
-            className={`p-4 rounded-xl text-xs font-semibold flex items-center justify-between border ${
+            className={`notification p-4 rounded-xl text-xs font-semibold flex items-center justify-between border ${
               notification.type === 'success'
                 ? 'bg-emerald-500/10 border-emerald-500/25 text-emerald-400'
                 : 'bg-rose-500/10 border-rose-500/25 text-rose-400'
             }`}
           >
             <span>{notification.message}</span>
-            <button onClick={() => setNotification(null)} className="opacity-70 hover:opacity-100">
+            <button data-icon-button aria-label="Dismiss notification" onClick={() => setNotification(null)} className="rounded-lg opacity-70 hover:bg-neutral-800 hover:opacity-100">
               &times;
             </button>
           </div>
@@ -349,7 +349,7 @@ export const AdminsPage: React.FC = () => {
 
                         <td data-label="Actions" className="py-3.5 px-5 text-right">
                           <div className="flex items-center justify-end gap-1.5">
-                            <button
+                            <button data-icon-button
                               onClick={() => handleEditClick(adm)}
                               title="Edit permissions"
                               className="p-1.5 rounded-lg text-neutral-400 hover:text-brand-600 hover:bg-brand-50 transition-colors"
@@ -357,7 +357,7 @@ export const AdminsPage: React.FC = () => {
                               <Edit2 className="w-3.5 h-3.5" />
                             </button>
                             {!isSelf && (
-                              <button
+                              <button data-icon-button
                                 onClick={() => setDeletingAdmin(adm)}
                                 title="Revoke admin access"
                                 className="p-1.5 rounded-lg text-neutral-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"

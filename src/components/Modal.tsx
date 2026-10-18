@@ -36,7 +36,7 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, subtitle, 
       <div ref={dialogRef} tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby={titleId} aria-describedby={subtitle ? descriptionId : undefined} className={`admin-dialog flex min-w-0 max-h-[calc(100dvh-1.5rem)] w-full ${widths[maxWidth]} flex-col rounded-xl border border-neutral-700 bg-neutral-900 outline-none sm:max-h-[calc(100dvh-3rem)]`}>
         <div className="max-h-[40dvh] overflow-y-auto flex shrink-0 items-start justify-between gap-3 border-b border-neutral-800 p-4 sm:p-5">
           <div className="min-w-0"><h2 id={titleId} className="break-words [overflow-wrap:anywhere] text-base font-medium text-neutral-100">{title}</h2>{subtitle && <p id={descriptionId} className="mt-1 break-words text-xs leading-relaxed text-neutral-400">{subtitle}</p>}</div>
-          <button onClick={onClose} aria-label="Close dialog" className="-mr-1 -mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-neutral-400 hover:bg-neutral-800 hover:text-white"><X className="h-5 w-5" /></button>
+          <button data-icon-button onClick={onClose} aria-label="Close dialog" className="-mr-1 -mt-2.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-neutral-400 hover:bg-neutral-800 hover:text-white"><X className="h-5 w-5" /></button>
         </div>
         <div className="dialog-content min-h-0 min-w-0 overflow-y-auto overscroll-contain p-4 sm:p-6">{children}</div>
       </div>
