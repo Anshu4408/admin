@@ -1,4 +1,6 @@
 import axios from 'axios';
+import { csvCell, saveCsv } from './csv';
+import { loadPaidParticipantsExport } from './paidParticipantExport';
 import type { ApiResponse, DashboardStats, AdminUser, AdminSessionUser, User, Team, Payment, Pagination, QRCode, QRPayment } from '../types';
 
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:9002';
@@ -54,12 +56,6 @@ export async function loadPaymentScreenshot(path: string): Promise<string> {
   if (!path.startsWith('/uploads/qr/')) throw new Error('Invalid payment screenshot path');
   const response = await apiClient.get(getMediaUrl(path), { responseType: 'blob' });
   return URL.createObjectURL(response.data);
-}
-
-function csvCell(value: unknown): string {
-  let text = String(value ?? '');
-  if (/^[\s]*[=+@-]/.test(text) || /^[\t\r\n]/.test(text)) text = "'" + text;
-  return `"${text.replace(/"/g, '""')}"`;
 }
 
 export const api = {
@@ -125,6 +121,26 @@ export const api = {
       return data;
     },
     exportCsvUrl: () => `${API_BASE_URL}/api/admin/users/export`,
+    downloadPaidParticipantsCsv: async () => {
+      const result = await loadPaidParticipantsExport({
+        loadUsersPage: async (page) => {
+          const { data } = await apiClient.get<ApiResponse<{ users: User[]; pagination: Pagination }>>('/api/admin/users', {
+            params: { page, limit: 100, has_team: 'true' },
+          });
+          if (!data.success || !Array.isArray(data.data?.users) || !data.data?.pagination) {
+            throw new Error('Could not load all participants. Please try again.');
+          }
+          return data.data;
+        },
+        loadTeams: async () => {
+          const { data } = await apiClient.get<ApiResponse<Team[]>>('/api/admin/teams');
+          if (!data.success || !Array.isArray(data.data)) throw new Error('Could not load team payment status. Please try again.');
+          return data.data;
+        },
+      });
+      saveCsv(result.csv, `transfinitte_paid_participants_${new Date().toISOString().split('T')[0]}.csv`);
+      return result;
+    },
     downloadCsv: async () => {
       const response = await apiClient.get('/api/admin/users/export', { responseType: 'blob' });
       const blob = new Blob([response.data], { type: 'text/csv' });

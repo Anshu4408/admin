@@ -15,13 +15,16 @@ import { Modal } from '../components/Modal';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { EmptyState } from '../components/EmptyState';
 import { api } from '../lib/api';
+import { useAuth } from '../context/AuthContext';
 import type { User, Pagination } from '../types';
 
 export const UsersPage: React.FC = () => {
+  const { canManageTeams } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
   const [pagination, setPagination] = useState<Pagination>({ total: 0, page: 1, limit: 10, pages: 1 });
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
+  const [exportingPaid, setExportingPaid] = useState(false);
 
   // Filters & Search
   const [search, setSearch] = useState('');
@@ -53,6 +56,18 @@ export const UsersPage: React.FC = () => {
       showNotification('error', 'Could not export users. Please try again.');
     } finally {
       setExporting(false);
+    }
+  };
+
+  const handlePaidExport = async () => {
+    setExportingPaid(true);
+    try {
+      const { participantCount, teamCount } = await api.users.downloadPaidParticipantsCsv();
+      showNotification('success', `Exported ${participantCount} participants from ${teamCount} paid teams.`);
+    } catch (error) {
+      showNotification('error', error instanceof Error ? error.message : 'Could not export paid participants. Please try again.');
+    } finally {
+      setExportingPaid(false);
     }
   };
 
@@ -159,14 +174,25 @@ export const UsersPage: React.FC = () => {
         title="Participants"
         subtitle={`${pagination.total} registered participants`}
         actions={
-          <button
-            onClick={handleExport}
-            disabled={exporting}
-            className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-xs font-semibold text-white transition-all"
-          >
-            <Download className="w-3.5 h-3.5" />
-            <span>{exporting ? 'Exporting…' : 'Export CSV'}</span>
-          </button>
+          <>
+            {canManageTeams && <button
+              onClick={handlePaidExport}
+              disabled={exportingPaid || exporting}
+              title="Export every participant in paid teams with team details, across all pages and filters"
+              className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl border border-neutral-700 bg-neutral-900 hover:bg-neutral-800 text-xs font-semibold text-neutral-200 transition-all disabled:opacity-50"
+            >
+              {exportingPaid ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
+              <span>{exportingPaid ? 'Exporting paid participants…' : 'Export paid participants'}</span>
+            </button>}
+            <button
+              onClick={handleExport}
+              disabled={exporting || exportingPaid}
+              className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-xs font-semibold text-white transition-all"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>{exporting ? 'Exporting all participants…' : 'Export all participants'}</span>
+            </button>
+          </>
         }
       />
 
