@@ -61,7 +61,7 @@ export async function loadPaymentScreenshot(path: string): Promise<string> {
 
 export const api = {
  registration: {
-  get: async () => (await apiClient.get<ApiResponse<RegistrationState>>('/api/admin/registration', { headers: { 'Cache-Control': 'no-cache' } })).data,
+  get: async () => (await apiClient.get<ApiResponse<RegistrationState>>('/api/admin/registration')).data,
   update: async (registration_open: boolean, version: number) => (await apiClient.put<ApiResponse<RegistrationState>>('/api/admin/registration', { registration_open, version })).data,
  },
   // Auth
