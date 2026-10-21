@@ -139,3 +139,5 @@ export interface QRPaymentRecipientSummary {
   rejected_count: number;
   reversed_count: number;
 }
+
+export interface RegistrationState { registration_open: boolean; version: number; updated_at: string; updated_by: string; }
