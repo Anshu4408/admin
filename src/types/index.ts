@@ -126,3 +126,16 @@ export interface QRPayment {
   team_contact?: string;
 }
 
+export interface QRPaymentRecipientSummary {
+  slot_index: number;
+  label: string;
+  upi_id?: string;
+  payment_count: number;
+  total_amount: number;
+  paid_count: number;
+  paid_amount: number;
+  processing_count: number;
+  processing_amount: number;
+  rejected_count: number;
+  reversed_count: number;
+}

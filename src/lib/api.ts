@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { csvCell, saveCsv } from './csv';
 import { loadPaidParticipantsExport } from './paidParticipantExport';
-import type { ApiResponse, DashboardStats, AdminUser, AdminSessionUser, User, Team, Payment, Pagination, QRCode, QRPayment } from '../types';
+import type { ApiResponse, DashboardStats, AdminUser, AdminSessionUser, User, Team, Payment, Pagination, QRCode, QRPayment, QRPaymentRecipientSummary } from '../types';
 
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:9002';
 
@@ -199,6 +199,14 @@ export const api = {
       const { data } = await apiClient.patch<ApiResponse>(`/api/admin/teams/${encodeURIComponent(id)}`, payload);
       return data;
     },
+    addMember: async (teamId: string, payload: { user_id?: string; email?: string }) => {
+      const { data } = await apiClient.post<ApiResponse>(`/api/admin/teams/${encodeURIComponent(teamId)}/members`, payload);
+      return data;
+    },
+    removeMember: async (teamId: string, userId: string) => {
+      const { data } = await apiClient.delete<ApiResponse>(`/api/admin/teams/${encodeURIComponent(teamId)}/members/${encodeURIComponent(userId)}`);
+      return data;
+    },
     updatePaymentStatus: async (id: string, payment_status: string) => {
       // Direct team payment status update: checks if qr payment exists or team pay endpoint
       const { data: submissions } = await apiClient.get<ApiResponse<QRPayment[]>>('/api/admin/qr-payments', { params: { status: 'processing' } });
@@ -207,14 +215,6 @@ export const api = {
       if (payment_status !== 'PAID' && payment_status !== 'Pending' && payment_status !== 'REJECTED') throw new Error('Review QR submissions to approve or reject a payment');
       const action = payment_status === 'PAID' ? 'approve' : 'reject';
       const { data } = await apiClient.post<ApiResponse>(`/api/admin/qr-payments/${pending.id}/${action}`);
-      return data;
-    },
-    addMember: async (teamId: string, payload: { user_id?: string; email?: string }) => {
-      const { data } = await apiClient.post<ApiResponse>(`/api/team/${teamId}/members`, payload);
-      return data;
-    },
-    removeMember: async (teamId: string, userId: string) => {
-      const { data } = await apiClient.delete<ApiResponse>(`/api/team/${teamId}/members/${userId}`);
       return data;
     },
     changeLeader: async (teamId: string, new_leader_user_id: string) => {
@@ -393,6 +393,10 @@ export const api = {
       const { data } = await apiClient.get<ApiResponse<QRPayment[]>>('/api/admin/qr-payments', { params });
       return data;
     },
+    getRecipientSummaries: async () => {
+      const { data } = await apiClient.get<ApiResponse<QRPaymentRecipientSummary[]>>('/api/admin/qr-payment-recipients');
+      return data;
+    },
     // Approve QR payment submission and mark team as PAID
     approvePayment: async (id: number) => {
       const { data } = await apiClient.post<ApiResponse>(`/api/admin/qr-payments/${id}/approve`);
@@ -408,7 +412,7 @@ export const api = {
       return data;
     },
     // Remap payment / screenshot to another team
-    remapPayment: async (id: number, payload: { target_team_id: string; admin_note?: string; approve?: boolean }) => {
+    remapPayment: async (id: number, payload: { target_team_id: string; target_qr_slot_index?: number; admin_note?: string; approve?: boolean }) => {
       const { data } = await apiClient.post<ApiResponse>(`/api/admin/qr-payments/${id}/remap`, payload);
       return data;
     },

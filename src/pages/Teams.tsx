@@ -38,6 +38,9 @@ export const TeamsPage: React.FC = () => {
   const [rosterTeam, setRosterTeam] = useState<Team | null>(null);
   const [rosterLoading, setRosterLoading] = useState(false);
   const [rosterError, setRosterError] = useState<string | null>(null);
+  const [memberEmail, setMemberEmail] = useState('');
+  const [memberActionError, setMemberActionError] = useState<string | null>(null);
+  const [isMemberActionPending, setIsMemberActionPending] = useState(false);
   const rosterRequest = useRef(0);
 
   const [editingTeam, setEditingTeam] = useState<Team | null>(null);
@@ -124,6 +127,42 @@ export const TeamsPage: React.FC = () => {
       if (requestId === rosterRequest.current) setRosterError(err.response?.data?.message || err.message || 'Could not load team members');
     } finally {
       if (requestId === rosterRequest.current) setRosterLoading(false);
+    }
+  };
+
+  const handleAdminAddMember = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!activeTeam || !memberEmail.trim() || isMemberActionPending) return;
+    setIsMemberActionPending(true);
+    setMemberActionError(null);
+    try {
+      const res = await api.teams.addMember(activeTeam.team_id, { email: memberEmail.trim() });
+      if (!res.success) throw new Error(res.message || 'Could not add participant');
+      setMemberEmail('');
+      showNotification('success', 'Participant added to team');
+      await loadTeamDetails(activeTeam.team_id);
+      fetchTeams(pagination.page);
+    } catch (err: any) {
+      setMemberActionError(err.response?.data?.message || err.message || 'Could not add participant');
+    } finally {
+      setIsMemberActionPending(false);
+    }
+  };
+
+  const handleAdminRemoveMember = async (userId: string) => {
+    if (!activeTeam || isMemberActionPending) return;
+    setIsMemberActionPending(true);
+    setMemberActionError(null);
+    try {
+      const res = await api.teams.removeMember(activeTeam.team_id, userId);
+      if (!res.success) throw new Error(res.message || 'Could not remove participant');
+      showNotification('success', 'Participant removed from team');
+      await loadTeamDetails(activeTeam.team_id);
+      fetchTeams(pagination.page);
+    } catch (err: any) {
+      setMemberActionError(err.response?.data?.message || err.message || 'Could not remove participant');
+    } finally {
+      setIsMemberActionPending(false);
     }
   };
 
@@ -416,9 +455,23 @@ export const TeamsPage: React.FC = () => {
             : rosterError ? <div role="alert" className="space-y-4"><p className="text-sm text-rose-300">{rosterError}</p><button onClick={() => loadTeamDetails(rosterTeam.team_id)} className="rounded-lg border border-neutral-700 px-4 py-2 text-sm">Retry</button></div>
             : activeTeam && <div className="space-y-5">
               <div className="flex flex-wrap items-center gap-3 text-xs text-neutral-400"><StatusBadge status={activeTeam.payment_status} /><span>{activeTeam.members!.length} / 5 members</span><span>{activeTeam.domain || 'No domain'}</span></div>
+              <form onSubmit={handleAdminAddMember} className="flex flex-wrap gap-2">
+                <input
+                  type="email"
+                  value={memberEmail}
+                  onChange={(event) => setMemberEmail(event.target.value)}
+                  placeholder="Participant email"
+                  className="min-w-0 flex-1 rounded-lg border border-neutral-800 bg-neutral-950 px-3 py-2 text-xs text-neutral-100"
+                  required
+                />
+                <button type="submit" disabled={isMemberActionPending} className="rounded-lg bg-brand-600 px-3 py-2 text-xs font-semibold text-white disabled:opacity-50">
+                  Add participant
+                </button>
+              </form>
+              {memberActionError && <p role="alert" className="text-xs text-rose-300">{memberActionError}</p>}
               <ul className="space-y-3" aria-label="Team members">
                 {activeTeam.members!.map(member => <li key={member.user_id} className="min-w-0 rounded-lg border border-neutral-800 bg-neutral-950 p-4">
-                  <div className="flex min-w-0 flex-wrap items-center gap-2"><p className="min-w-0 break-words text-sm font-medium text-neutral-100">{member.name || 'Name not provided'}</p>{member.user_id === activeTeam.leader_user_id && <Badge variant="amber"><Crown className="h-3 w-3" />Leader</Badge>}</div>
+                  <div className="flex min-w-0 flex-wrap items-center justify-between gap-2"><div className="flex min-w-0 flex-wrap items-center gap-2"><p className="min-w-0 break-words text-sm font-medium text-neutral-100">{member.name || 'Name not provided'}</p>{member.user_id === activeTeam.leader_user_id && <Badge variant="amber"><Crown className="h-3 w-3" />Leader</Badge>}</div>{member.user_id !== activeTeam.leader_user_id && <button type="button" disabled={isMemberActionPending} onClick={() => handleAdminRemoveMember(member.user_id)} className="text-xs font-semibold text-rose-400 hover:text-rose-300 disabled:opacity-50">Remove</button>}</div>
                   <p className="mt-2 break-all text-xs text-neutral-400">{member.email || 'Email not provided'}</p>
                   <p className="mt-2 break-words text-xs text-neutral-400">Roll number: {member.roll_number || 'Not provided'}</p>
                 </li>)}

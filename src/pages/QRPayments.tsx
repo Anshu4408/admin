@@ -24,7 +24,7 @@ import { Modal } from '../components/Modal';
 import { StatusBadge } from '../components/Badge';
 import { EmptyState } from '../components/EmptyState';
 import { api, getMediaUrl, loadPaymentScreenshot } from '../lib/api';
-import type { QRCode, QRPayment, Team } from '../types';
+import type { QRCode, QRPayment, QRPaymentRecipientSummary, Team } from '../types';
 
 export const QRPaymentsPage: React.FC = () => {
   // Tabs: 'qrs' (Rotating QR Codes) or 'submissions' (UTR Submissions)
@@ -34,6 +34,7 @@ export const QRPaymentsPage: React.FC = () => {
   const [qrCodes, setQrCodes] = useState<QRCode[]>([]);
   const [activeSlot, setActiveSlot] = useState<number | null>(null);
   const [loadingQrs, setLoadingQrs] = useState(true);
+  const [recipientSummaries, setRecipientSummaries] = useState<QRPaymentRecipientSummary[]>([]);
 
   // Submissions state
   const [submissions, setSubmissions] = useState<QRPayment[]>([]);
@@ -82,6 +83,7 @@ export const QRPaymentsPage: React.FC = () => {
   // Remap Payment Modal State
   const [remapTarget, setRemapTarget] = useState<QRPayment | null>(null);
   const [remapTargetTeamId, setRemapTargetTeamId] = useState<string>('');
+  const [remapTargetQrSlot, setRemapTargetQrSlot] = useState<number>(0);
   const [remapTeamSearch, setRemapTeamSearch] = useState<string>('');
   const [remapApprove, setRemapApprove] = useState<boolean>(true);
   const [remapNote, setRemapNote] = useState<string>('');
@@ -137,9 +139,10 @@ export const QRPaymentsPage: React.FC = () => {
   const fetchQRCodes = useCallback(async () => {
     setLoadingQrs(true);
     try {
-      const [codesRes, activeRes] = await Promise.all([
+      const [codesRes, activeRes, recipientsRes] = await Promise.all([
         api.qr.getCodes().catch(() => ({ success: false, data: [] })),
         api.qr.getActive().catch(() => ({ success: false, data: { qr: null, slot_index: 0 } })),
+        api.qr.getRecipientSummaries().catch(() => ({ success: false, data: [] })),
       ]);
 
       if (codesRes.success) {
@@ -149,6 +152,9 @@ export const QRPaymentsPage: React.FC = () => {
         setActiveSlot(activeRes.data?.slot_index ?? (activeRes as any).slot_index ?? 0);
       } else if ((activeRes as any)?.slot !== undefined) {
         setActiveSlot((activeRes as any).slot);
+      }
+      if (recipientsRes.success) {
+        setRecipientSummaries(Array.isArray(recipientsRes.data) ? recipientsRes.data : []);
       }
     } catch (err: any) {
       showNotification('error', err.response?.data?.message || 'Failed to fetch QR codes');
@@ -356,6 +362,7 @@ export const QRPaymentsPage: React.FC = () => {
     try {
       const res = await api.qr.remapPayment(remapTarget.id, {
         target_team_id: tid,
+        target_qr_slot_index: remapTargetQrSlot,
         admin_note: remapNote.trim(),
         approve: remapApprove,
       });
@@ -364,6 +371,7 @@ export const QRPaymentsPage: React.FC = () => {
         showNotification('success', res.message || `Payment mapped to team ${tid} successfully!`);
         setRemapTarget(null);
         setRemapTargetTeamId('');
+        setRemapTargetQrSlot(remapTarget.qr_slot_index);
         setRemapTeamSearch('');
         setRemapNote('');
         fetchSubmissions();
@@ -569,6 +577,52 @@ export const QRPaymentsPage: React.FC = () => {
             <p className="text-xs text-neutral-400 mt-1">Approved offline transactions</p>
           </div>
         </div>
+
+        <section className="bg-neutral-900 border border-neutral-800/80 rounded-xl p-4">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+            <div>
+              <h3 className="text-sm font-semibold text-neutral-50">Payment receipts by QR</h3>
+              <p className="text-xs text-neutral-400">
+                Amounts grouped by the QR slot recorded on each submission. Paid totals exclude processing, rejected, and reversed payments.
+              </p>
+            </div>
+            <span className="text-xs text-neutral-500">Historical records included</span>
+          </div>
+          {recipientSummaries.length === 0 ? (
+            <p className="text-xs text-neutral-500 py-3">No configured QR recipients or payment records found.</p>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
+              {recipientSummaries.map((summary) => (
+                <div key={summary.slot_index} className="rounded-xl border border-neutral-800 bg-neutral-950/60 p-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <p className="text-xs font-semibold text-neutral-100">{summary.label}</p>
+                      <p className="text-[11px] text-neutral-500">Slot {summary.slot_index}</p>
+                    </div>
+                    <span className="text-sm font-semibold text-emerald-400">₹{summary.paid_amount.toFixed(2)}</span>
+                  </div>
+                  <p className="mt-2 text-xs text-neutral-400 truncate" title={summary.upi_id || 'UPI recipient not configured'}>
+                    Received by: <span className="text-neutral-200">{summary.upi_id || 'UPI ID not configured'}</span>
+                  </p>
+                  <div className="mt-3 grid grid-cols-3 gap-2 text-[11px]">
+                    <div>
+                      <p className="text-neutral-500">Paid</p>
+                      <p className="text-emerald-400">{summary.paid_count}</p>
+                    </div>
+                    <div>
+                      <p className="text-neutral-500">Review</p>
+                      <p className="text-amber-400">₹{summary.processing_amount.toFixed(2)}</p>
+                    </div>
+                    <div>
+                      <p className="text-neutral-500">All records</p>
+                      <p className="text-neutral-200">{summary.payment_count}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
 
         {/* Tab Toggle Navigation */}
         <div className="qr-tabs flex flex-col gap-1 border-b border-neutral-800 sm:flex-row sm:gap-4">
@@ -1527,6 +1581,29 @@ export const QRPaymentsPage: React.FC = () => {
 
               {/* Right Column: Target Team Selector & Options */}
               <div className="space-y-3.5">
+                <div>
+                  <label htmlFor="target-qr-slot" className="block text-xs font-semibold text-neutral-200 mb-1">
+                    QR shown in screenshot <span className="text-rose-500">*</span>
+                  </label>
+                  <select
+                    id="target-qr-slot"
+                    value={remapTargetQrSlot}
+                    onChange={(e) => setRemapTargetQrSlot(Number(e.target.value))}
+                    className="w-full px-3.5 py-2 bg-neutral-950 border border-neutral-800 rounded-xl text-xs text-neutral-50 focus:outline-none focus:border-brand-500"
+                  >
+                    {[0, 1, 2, 3].map((slot) => {
+                      const qr = qrCodes.find((item) => item.slot_index === slot);
+                      return (
+                        <option key={slot} value={slot} disabled={!qr?.is_active}>
+                          Slot {slot}{qr ? ` - ${qr.label}` : ' - not configured'}
+                        </option>
+                      );
+                    })}
+                  </select>
+                  <p className="mt-1 text-xs text-neutral-400">
+                    Select the QR whose UPI/merchant details are visible in the payment screenshot.
+                  </p>
+                </div>
                 {/* Search Target Team */}
                 <div>
                   <label className="block text-xs font-semibold text-neutral-200 mb-1">
