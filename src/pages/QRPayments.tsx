@@ -16,13 +16,15 @@ import {
   Plus,
   Loader2,
   Maximize2,
+  Link2,
+  FileImage,
 } from 'lucide-react';
 import { Navbar } from '../components/Navbar';
 import { Modal } from '../components/Modal';
 import { StatusBadge } from '../components/Badge';
 import { EmptyState } from '../components/EmptyState';
 import { api, getMediaUrl, loadPaymentScreenshot } from '../lib/api';
-import type { QRCode, QRPayment } from '../types';
+import type { QRCode, QRPayment, Team } from '../types';
 
 export const QRPaymentsPage: React.FC = () => {
   // Tabs: 'qrs' (Rotating QR Codes) or 'submissions' (UTR Submissions)
@@ -72,11 +74,53 @@ export const QRPaymentsPage: React.FC = () => {
 
   // Image Lightbox Modal
   const [lightboxImage, setLightboxImage] = useState<{ url: string; title: string } | null>(null);
+  const [lightboxPayment, setLightboxPayment] = useState<QRPayment | null>(null);
+
+  // Teams list for mapping picker
+  const [availableTeams, setAvailableTeams] = useState<Team[]>([]);
+
+  // Remap Payment Modal State
+  const [remapTarget, setRemapTarget] = useState<QRPayment | null>(null);
+  const [remapTargetTeamId, setRemapTargetTeamId] = useState<string>('');
+  const [remapTeamSearch, setRemapTeamSearch] = useState<string>('');
+  const [remapApprove, setRemapApprove] = useState<boolean>(true);
+  const [remapNote, setRemapNote] = useState<string>('');
+  const [isRemapping, setIsRemapping] = useState<boolean>(false);
+  const [remapError, setRemapError] = useState<string | null>(null);
+  const [remapScreenshotUrl, setRemapScreenshotUrl] = useState<string | null>(null);
+
+  // Direct Create Mapped Payment Modal State
+  const [isCreateMappedModalOpen, setIsCreateMappedModalOpen] = useState(false);
+  const [newMappedTeamId, setNewMappedTeamId] = useState<string>('');
+  const [newMappedTeamSearch, setNewMappedTeamSearch] = useState<string>('');
+  const [newMappedUtr, setNewMappedUtr] = useState<string>('');
+  const [newMappedAmount, setNewMappedAmount] = useState<number>(400);
+  const [newMappedFile, setNewMappedFile] = useState<File | null>(null);
+  const [newMappedPreview, setNewMappedPreview] = useState<string | null>(null);
+  const [newMappedApprove, setNewMappedApprove] = useState<boolean>(true);
+  const [newMappedNote, setNewMappedNote] = useState<string>('');
+  const [isCreatingMapped, setIsCreatingMapped] = useState<boolean>(false);
+  const [newMappedError, setNewMappedError] = useState<string | null>(null);
 
   useEffect(() => {
     const url = lightboxImage?.url;
     return () => { if (url?.startsWith('blob:')) URL.revokeObjectURL(url); };
   }, [lightboxImage]);
+
+  // Revoke the exact URL owned by this request, including late responses after closing.
+  useEffect(() => {
+    let active = true;
+    let ownedUrl: string | null = null;
+    setRemapScreenshotUrl(null);
+    if (remapTarget?.screenshot_url) {
+      loadPaymentScreenshot(remapTarget.screenshot_url).then(url => {
+        if (!active) { URL.revokeObjectURL(url); return; }
+        ownedUrl = url;
+        setRemapScreenshotUrl(url);
+      }).catch(() => { if (active) setRemapScreenshotUrl(null); });
+    }
+    return () => { active = false; if (ownedUrl) URL.revokeObjectURL(ownedUrl); };
+  }, [remapTarget]);
 
   const showNotification = (type: 'success' | 'error', message: string) => {
     setNotification({ type, message });
@@ -128,9 +172,19 @@ export const QRPaymentsPage: React.FC = () => {
     }
   }, [statusFilter]);
 
+  const fetchAllTeams = useCallback(async () => {
+    try {
+      const res = await api.teams.list({ limit: 1000 });
+      if (res.success && res.data?.teams) {
+        setAvailableTeams(res.data.teams);
+      }
+    } catch {}
+  }, []);
+
   useEffect(() => {
     fetchQRCodes();
-  }, [fetchQRCodes]);
+    fetchAllTeams();
+  }, [fetchQRCodes, fetchAllTeams]);
 
   useEffect(() => {
     fetchSubmissions();
@@ -287,12 +341,101 @@ export const QRPaymentsPage: React.FC = () => {
     }
   };
 
+  // Submit Remap payment to target team
+  const handleRemapSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!remapTarget || isRemapping) return;
+    const tid = remapTargetTeamId.trim();
+    if (!tid) {
+      setRemapError('Please select or enter the target Team ID');
+      return;
+    }
+
+    setIsRemapping(true);
+    setRemapError(null);
+    try {
+      const res = await api.qr.remapPayment(remapTarget.id, {
+        target_team_id: tid,
+        admin_note: remapNote.trim(),
+        approve: remapApprove,
+      });
+
+      if (res.success) {
+        showNotification('success', res.message || `Payment mapped to team ${tid} successfully!`);
+        setRemapTarget(null);
+        setRemapTargetTeamId('');
+        setRemapTeamSearch('');
+        setRemapNote('');
+        fetchSubmissions();
+        fetchAllTeams();
+      } else {
+        setRemapError(res.message || 'Failed to remap payment');
+      }
+    } catch (err: any) {
+      setRemapError(err.response?.data?.message || err.message || 'Failed to remap payment');
+    } finally {
+      setIsRemapping(false);
+    }
+  };
+
+  // Submit Direct Created Mapped Payment
+  const handleCreateMappedSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (isCreatingMapped) return;
+    setNewMappedError(null);
+    const tid = newMappedTeamId.trim();
+    const utrVal = newMappedUtr.trim();
+    if (!tid) {
+      setNewMappedError('Please select or enter the target Team ID');
+      return;
+    }
+    if (utrVal.length < 6 || utrVal.length > 64) {
+      setNewMappedError('UTR must contain 6 to 64 characters');
+      return;
+    }
+    if (!newMappedFile) {
+      setNewMappedError('Please upload the payment screenshot proof');
+      return;
+    }
+
+    setIsCreatingMapped(true);
+    try {
+      const formData = new FormData();
+      formData.append('team_id', tid);
+      formData.append('utr', utrVal);
+      formData.append('amount', String(newMappedAmount));
+      formData.append('approve', newMappedApprove ? 'true' : 'false');
+      formData.append('admin_note', newMappedNote.trim());
+      formData.append('screenshot', newMappedFile);
+
+      const res = await api.qr.createMappedPayment(formData);
+      if (res.success) {
+        showNotification('success', `Payment mapped from screenshot to team ${tid} successfully!`);
+        setIsCreateMappedModalOpen(false);
+        setNewMappedTeamId('');
+        setNewMappedUtr('');
+        setNewMappedFile(null);
+        setNewMappedPreview(null);
+        fetchSubmissions();
+        fetchAllTeams();
+      } else {
+        setNewMappedError(res.message || 'Failed to record mapped payment');
+      }
+    } catch (err: any) {
+      setNewMappedError(err.response?.data?.message || 'Error creating mapped payment');
+    } finally {
+      setIsCreatingMapped(false);
+    }
+  };
+
   // Filtered submissions
   const filteredSubmissions = submissions.filter((p) => {
     if (!searchQuery) return true;
     const q = searchQuery.toLowerCase();
     return (
       p.team_id?.toLowerCase().includes(q) ||
+      p.team_name?.toLowerCase().includes(q) ||
+      p.team_leader?.toLowerCase().includes(q) ||
       p.utr?.toLowerCase().includes(q) ||
       p.admin_note?.toLowerCase().includes(q) ||
       p.verified_by?.toLowerCase().includes(q)
@@ -313,11 +456,30 @@ export const QRPaymentsPage: React.FC = () => {
               onClick={() => {
                 fetchQRCodes();
                 fetchSubmissions();
+                fetchAllTeams();
               }}
               title="Refresh Data"
               className="p-2 rounded-xl border border-neutral-800 bg-neutral-900 text-neutral-300 hover:text-neutral-50 hover:bg-neutral-950 transition-colors"
             >
               <RefreshCw className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={() => {
+                setIsCreateMappedModalOpen(true);
+                setNewMappedError(null);
+                setNewMappedTeamId('');
+                setNewMappedTeamSearch('');
+                setNewMappedUtr('');
+                setNewMappedAmount(400);
+                setNewMappedFile(null);
+                setNewMappedPreview(null);
+                setNewMappedApprove(true);
+                setNewMappedNote('');
+              }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-brand-500/40 bg-brand-500/10 hover:bg-brand-500/20 text-xs font-semibold text-brand-400 transition-all"
+            >
+              <FileImage className="w-3.5 h-3.5" />
+              <span>Map New Screenshot</span>
             </button>
             <button
               onClick={() => setIsManualTeamModalOpen(true)}
@@ -687,19 +849,31 @@ export const QRPaymentsPage: React.FC = () => {
                           <tr key={sub.id} className="hover:bg-neutral-950/80 transition-colors">
                             {/* Team ID */}
                             <td data-label="Team ID" className="py-3.5 px-5">
-                              <div className="flex items-center gap-1.5 font-mono">
-                                <span className="whitespace-nowrap font-semibold text-neutral-50">{sub.team_id}</span>
-                                <button data-icon-button
-                                  onClick={() => copyToClipboard(sub.team_id)}
-                                  className="p-0.5 rounded-lg text-neutral-400 hover:bg-neutral-800 hover:text-brand-600 transition-colors"
-                                  title="Copy Team ID"
-                                >
-                                  {copiedText === sub.team_id ? (
-                                    <Check className="w-3 h-3 text-emerald-400" />
-                                  ) : (
-                                    <Copy className="w-3 h-3" />
-                                  )}
-                                </button>
+                              <div className="flex flex-col gap-0.5">
+                                <div className="flex items-center gap-1.5 font-mono">
+                                  <span className="whitespace-nowrap font-semibold text-neutral-50">{sub.team_id}</span>
+                                  <button data-icon-button
+                                    onClick={() => copyToClipboard(sub.team_id)}
+                                    className="p-0.5 rounded-lg text-neutral-400 hover:bg-neutral-800 hover:text-brand-600 transition-colors"
+                                    title="Copy Team ID"
+                                  >
+                                    {copiedText === sub.team_id ? (
+                                      <Check className="w-3 h-3 text-emerald-400" />
+                                    ) : (
+                                      <Copy className="w-3 h-3" />
+                                    )}
+                                  </button>
+                                </div>
+                                {sub.team_name && (
+                                  <span className="text-xs text-brand-400 font-medium truncate max-w-[170px]" title={sub.team_name}>
+                                    {sub.team_name}
+                                  </span>
+                                )}
+                                {sub.team_leader && (
+                                  <span className="text-xs text-neutral-400 truncate max-w-[170px]" title={`Leader: ${sub.team_leader}`}>
+                                    {sub.team_leader}
+                                  </span>
+                                )}
                               </div>
                             </td>
 
@@ -738,6 +912,7 @@ export const QRPaymentsPage: React.FC = () => {
                                   onClick={async () => {
                                     try {
                                       const url = await loadPaymentScreenshot(sub.screenshot_url!);
+                                      setLightboxPayment(sub);
                                       setLightboxImage({ url, title: `Payment Proof - Team ${sub.team_id} (UTR: ${sub.utr})` });
                                     } catch { showNotification('error', 'Could not load payment screenshot'); }
                                   }}
@@ -796,6 +971,23 @@ export const QRPaymentsPage: React.FC = () => {
                             {/* Actions */}
                             <td data-label="Actions" className="py-3.5 px-5 text-right">
                               <div className="flex items-center justify-end gap-1.5">
+                                {/* Map to Team button (Available for all submissions) */}
+                                <button
+                                  onClick={() => {
+                                    setRemapTarget(sub);
+                                    setRemapTargetTeamId('');
+                                    setRemapTeamSearch('');
+                                    setRemapApprove(sub.status?.toLowerCase() === 'processing');
+                                    setRemapNote('');
+                                    setRemapError(null);
+                                  }}
+                                  className="flex items-center gap-1 px-2.5 py-1 border border-brand-500/30 text-brand-400 hover:bg-brand-500/10 rounded-lg text-xs font-semibold transition-colors"
+                                  title="Map / reassign this payment screenshot to another team"
+                                >
+                                  <Link2 className="w-3 h-3" />
+                                  <span>Map</span>
+                                </button>
+
                                 {isProcessing && (
                                   <>
                                     <button
@@ -1216,24 +1408,541 @@ export const QRPaymentsPage: React.FC = () => {
               className="max-h-[70vh] max-w-full object-contain rounded-xl border border-neutral-800 bg-neutral-950"
             />
             <div className="mt-4 flex flex-wrap gap-3 items-center justify-between w-full pt-3 border-t border-neutral-800">
-              <a
-                href={lightboxImage.url}
-                target="_blank"
-                rel="noreferrer"
-                className="flex items-center gap-1.5 text-xs text-brand-600 hover:text-brand-700 font-semibold"
-              >
-                <ExternalLink className="w-3.5 h-3.5" />
-                <span>Open in full resolution</span>
-              </a>
+              <div className="flex items-center gap-3">
+                <a
+                  href={lightboxImage.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center gap-1.5 text-xs text-brand-600 hover:text-brand-700 font-semibold"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  <span>Open in full resolution</span>
+                </a>
+                {lightboxPayment && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const target = lightboxPayment;
+                      setLightboxImage(null);
+                      setRemapTarget(target);
+                      setRemapTargetTeamId('');
+                      setRemapTeamSearch('');
+                      setRemapApprove(target.status?.toLowerCase() === 'processing');
+                      setRemapNote('');
+                      setRemapError(null);
+                    }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-brand-400 bg-brand-500/10 hover:bg-brand-500/20 border border-brand-500/30 rounded-xl transition-colors"
+                  >
+                    <Link2 className="w-3.5 h-3.5" />
+                    <span>Map This Screenshot to Team</span>
+                  </button>
+                )}
+              </div>
               <button
                 type="button"
-                onClick={() => setLightboxImage(null)}
+                onClick={() => {
+                  setLightboxImage(null);
+                  setLightboxPayment(null);
+                }}
                 className="px-4 py-1.5 text-xs font-semibold text-neutral-200 bg-neutral-800 hover:bg-neutral-700 rounded-xl transition-colors"
               >
                 Close
               </button>
             </div>
           </div>
+        </Modal>
+      )}
+
+      {/* REMAP PAYMENT / SCREENSHOT TO CORRECT TEAM MODAL */}
+      {remapTarget && (
+        <Modal
+          isOpen={!!remapTarget}
+          onClose={() => { if (!isRemapping) setRemapTarget(null); }}
+          title="Map Payment Screenshot to Correct Team"
+          subtitle={`Submission #${remapTarget.id} · UTR: ${remapTarget.utr} · Currently assigned to Team ${remapTarget.team_id}`}
+          maxWidth="2xl"
+        >
+          <form onSubmit={handleRemapSubmit} className="space-y-4">
+            {remapError && (
+              <div role="alert" className="p-3 rounded-xl border border-rose-500/30 bg-rose-500/10 text-xs text-rose-400">
+                {remapError}
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Left Column: Screenshot & Current Info */}
+              <div className="space-y-3 bg-neutral-950/70 p-3.5 rounded-xl border border-neutral-800">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-neutral-300">Proof Screenshot</span>
+                  {remapScreenshotUrl && (
+                    <a
+                      href={remapScreenshotUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-xs text-brand-400 hover:underline flex items-center gap-1"
+                    >
+                      <Maximize2 className="w-3 h-3" />
+                      <span>Full view</span>
+                    </a>
+                  )}
+                </div>
+
+                <div className="flex justify-center items-center bg-black/40 rounded-xl border border-neutral-800 p-2 min-h-[180px] max-h-[260px] overflow-hidden">
+                  {remapScreenshotUrl ? (
+                    <img
+                      src={remapScreenshotUrl}
+                      alt="Payment proof"
+                      className="max-h-[240px] w-auto object-contain rounded-lg"
+                    />
+                  ) : (
+                    <div className="text-center text-neutral-500 text-xs flex flex-col items-center gap-1">
+                      <FileImage className="w-8 h-8 opacity-40" />
+                      <span>No screenshot image preview</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Current Details */}
+                <div className="text-xs space-y-1.5 border-t border-neutral-800/80 pt-2 text-neutral-300">
+                  <div className="flex justify-between">
+                    <span className="text-neutral-400">Current Team:</span>
+                    <span className="font-mono font-semibold text-neutral-200">
+                      {remapTarget.team_id} {remapTarget.team_name ? `(${remapTarget.team_name})` : ''}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-neutral-400">Submitted UTR:</span>
+                    <span className="font-mono text-neutral-200">{remapTarget.utr}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-neutral-400">Amount & Slot:</span>
+                    <span className="text-neutral-200">₹{remapTarget.amount} (Slot {remapTarget.qr_slot_index})</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-neutral-400">Current Status:</span>
+                    <StatusBadge status={remapTarget.status} />
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Column: Target Team Selector & Options */}
+              <div className="space-y-3.5">
+                {/* Search Target Team */}
+                <div>
+                  <label className="block text-xs font-semibold text-neutral-200 mb-1">
+                    Search Target Team (by Name, ID, or Leader)
+                  </label>
+                  <div className="relative">
+                    <Search className="w-3.5 h-3.5 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="text"
+                      value={remapTeamSearch}
+                      onChange={(e) => setRemapTeamSearch(e.target.value)}
+                      placeholder="Type team name, 6-digit ID, or leader email..."
+                      className="w-full pl-8 pr-3 py-1.5 bg-neutral-950 border border-neutral-800 rounded-xl text-xs text-neutral-100 placeholder-neutral-400 focus:outline-none focus:border-brand-500"
+                    />
+                  </div>
+
+                  {/* Team suggestions list */}
+                  {remapTeamSearch.trim() && (
+                    <div className="mt-1.5 max-h-40 overflow-y-auto space-y-1 bg-neutral-950 border border-neutral-800 rounded-xl p-1.5 shadow-lg">
+                      {availableTeams
+                        .filter((t) => {
+                          const q = remapTeamSearch.toLowerCase();
+                          return (
+                            t.team_id?.toLowerCase().includes(q) ||
+                            t.name?.toLowerCase().includes(q) ||
+                            t.leader?.toLowerCase().includes(q) ||
+                            t.contact?.toLowerCase().includes(q)
+                          );
+                        })
+                        .slice(0, 5)
+                        .map((team) => (
+                          <div
+                            key={team.team_id}
+                            onClick={() => {
+                              setRemapTargetTeamId(team.team_id);
+                              setRemapTeamSearch('');
+                            }}
+                            className={`p-2 rounded-lg cursor-pointer flex items-center justify-between text-xs transition-colors ${
+                              remapTargetTeamId === team.team_id
+                                ? 'bg-brand-600/20 border border-brand-500/40 text-brand-300'
+                                : 'hover:bg-neutral-900 text-neutral-200'
+                            }`}
+                          >
+                            <div className="min-w-0">
+                              <p className="font-semibold truncate">{team.name}</p>
+                              <p className="text-xs text-neutral-400 font-mono truncate">
+                                ID: {team.team_id} · Leader: {team.leader || 'N/A'}
+                              </p>
+                            </div>
+                            <span className="text-xs px-2 py-0.5 rounded-full bg-neutral-800 font-medium whitespace-nowrap ml-2">
+                              {team.payment_status}
+                            </span>
+                          </div>
+                        ))}
+                      {availableTeams.filter((t) => {
+                        const q = remapTeamSearch.toLowerCase();
+                        return (
+                          t.team_id?.toLowerCase().includes(q) ||
+                          t.name?.toLowerCase().includes(q) ||
+                          t.leader?.toLowerCase().includes(q)
+                        );
+                      }).length === 0 && (
+                        <p className="text-xs text-neutral-400 p-2 text-center">No matching teams found</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Selected Target Team ID input */}
+                <div>
+                  <label htmlFor="target-team-id-input" className="block text-xs font-semibold text-neutral-200 mb-1">
+                    Selected Target Team ID <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    id="target-team-id-input"
+                    type="text"
+                    required
+                    value={remapTargetTeamId}
+                    onChange={(e) => setRemapTargetTeamId(e.target.value.trim())}
+                    placeholder="e.g. 123456"
+                    className="w-full px-3.5 py-2 bg-neutral-950 border border-neutral-800 rounded-xl text-xs font-mono text-neutral-50 focus:outline-none focus:border-brand-500"
+                  />
+                  {/* Selected target preview */}
+                  {remapTargetTeamId && (
+                    <div className="mt-1 text-xs">
+                      {(() => {
+                        const target = availableTeams.find((t) => t.team_id === remapTargetTeamId);
+                        if (target) {
+                          return (
+                            <span className="text-emerald-400 font-medium flex items-center gap-1">
+                              <CheckCircle className="w-3 h-3" />
+                              Target: {target.name} (Leader: {target.leader}) · Current Status: {target.payment_status}
+                            </span>
+                          );
+                        }
+                        return (
+                          <span className="text-neutral-400">
+                            Custom team ID entered: {remapTargetTeamId}
+                          </span>
+                        );
+                      })()}
+                    </div>
+                  )}
+                </div>
+
+                {/* Checkbox: Approve immediately */}
+                <label className="flex items-start gap-2 text-xs text-neutral-200 cursor-pointer pt-1">
+                  <input
+                    type="checkbox"
+                    checked={remapApprove}
+                    onChange={(e) => setRemapApprove(e.target.checked)}
+                    className="mt-0.5 rounded border-neutral-800 bg-neutral-950 text-brand-600 focus:ring-brand-500"
+                  />
+                  <span>
+                    <strong>Approve and mark target team as PAID immediately</strong>
+                    <span className="block text-neutral-400 text-xs">
+                      If checked, marks the target team status as PAID and approves this submission. If unchecked, keeps the existing submission status. An already paid submission remains paid when moved.
+                    </span>
+                  </span>
+                </label>
+
+                {/* Reason Note */}
+                <div>
+                  <label htmlFor="remap-note-input" className="block text-xs font-semibold text-neutral-200 mb-1">
+                    Audit Note / Reason for Remapping
+                  </label>
+                  <textarea
+                    id="remap-note-input"
+                    required maxLength={1000}
+                    rows={2}
+                    value={remapNote}
+                    onChange={(e) => setRemapNote(e.target.value)}
+                    placeholder="e.g. Verified from payment slip screenshot; payer is John Doe belonging to this team"
+                    className="w-full px-3 py-1.5 bg-neutral-950 border border-neutral-800 rounded-xl text-xs text-neutral-100 placeholder-neutral-400 focus:outline-none focus:border-brand-500"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center justify-between gap-2 border-t border-neutral-800 pt-3 mt-2">
+              <p className="text-xs text-neutral-400">
+                The previous team's status will be reverted to Pending if it has no other valid payments.
+              </p>
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  disabled={isRemapping}
+                  onClick={() => setRemapTarget(null)}
+                  className="px-4 py-2 text-xs font-semibold rounded-xl text-neutral-300 hover:bg-neutral-800 disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isRemapping || !remapTargetTeamId.trim() || !remapNote.trim()}
+                  className="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-xl bg-brand-600 hover:bg-brand-500 text-white disabled:opacity-50"
+                >
+                  {isRemapping ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>Mapping Payment...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Link2 className="w-3.5 h-3.5" />
+                      <span>Confirm & Map to Team</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </form>
+        </Modal>
+      )}
+
+      {/* CREATE NEW MAPPED PAYMENT FROM SCREENSHOT MODAL */}
+      {isCreateMappedModalOpen && (
+        <Modal
+          isOpen={isCreateMappedModalOpen}
+          onClose={() => { if (!isCreatingMapped) setIsCreateMappedModalOpen(false); }}
+          title="Map New Payment from Screenshot Proof"
+          subtitle="Record and map an offline UPI payment proof directly to a team"
+          maxWidth="lg"
+        >
+          <form onSubmit={handleCreateMappedSubmit} className="space-y-4">
+            {newMappedError && <div role="alert" className="rounded-lg border border-rose-500/30 bg-rose-500/10 p-3 text-xs text-rose-300">{newMappedError}</div>}
+            {/* Target Team Selection */}
+            <div>
+              <label className="block text-xs font-semibold text-neutral-200 mb-1">
+                Target Team <span className="text-rose-500">*</span>
+              </label>
+              <div className="relative mb-1.5">
+                <Search className="w-3.5 h-3.5 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  value={newMappedTeamSearch}
+                  onChange={(e) => setNewMappedTeamSearch(e.target.value)}
+                  placeholder="Search team by name, ID, or leader..."
+                  className="w-full pl-8 pr-3 py-1.5 bg-neutral-950 border border-neutral-800 rounded-xl text-xs text-neutral-100 placeholder-neutral-400 focus:outline-none focus:border-brand-500"
+                />
+              </div>
+
+              {newMappedTeamSearch.trim() && (
+                <div className="max-h-36 overflow-y-auto space-y-1 bg-neutral-950 border border-neutral-800 rounded-xl p-1.5 mb-2 shadow-lg">
+                  {availableTeams
+                    .filter((t) => {
+                      const q = newMappedTeamSearch.toLowerCase();
+                      return (
+                        t.team_id?.toLowerCase().includes(q) ||
+                        t.name?.toLowerCase().includes(q) ||
+                        t.leader?.toLowerCase().includes(q)
+                      );
+                    })
+                    .slice(0, 5)
+                    .map((team) => (
+                      <div
+                        key={team.team_id}
+                        onClick={() => {
+                          setNewMappedTeamId(team.team_id);
+                          setNewMappedTeamSearch('');
+                        }}
+                        className={`p-2 rounded-lg cursor-pointer flex items-center justify-between text-xs transition-colors ${
+                          newMappedTeamId === team.team_id
+                            ? 'bg-brand-600/20 border border-brand-500/40 text-brand-300'
+                            : 'hover:bg-neutral-900 text-neutral-200'
+                        }`}
+                      >
+                        <div>
+                          <p className="font-semibold">{team.name}</p>
+                          <p className="text-xs text-neutral-400 font-mono">
+                            ID: {team.team_id} · {team.leader || 'No leader'}
+                          </p>
+                        </div>
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-neutral-800 font-medium">
+                          {team.payment_status}
+                        </span>
+                      </div>
+                    ))}
+                </div>
+              )}
+
+              <input
+                type="text"
+                required
+                value={newMappedTeamId}
+                onChange={(e) => setNewMappedTeamId(e.target.value.trim())}
+                placeholder="Team ID (e.g. 123456)"
+                className="w-full px-3.5 py-2 bg-neutral-950 border border-neutral-800 rounded-xl text-xs font-mono text-neutral-50 focus:outline-none focus:border-brand-500"
+              />
+              {newMappedTeamId && (
+                <div className="mt-1 text-xs">
+                  {(() => {
+                    const target = availableTeams.find((t) => t.team_id === newMappedTeamId);
+                    if (target) {
+                      return (
+                        <span className="text-emerald-400 font-medium flex items-center gap-1">
+                          <CheckCircle className="w-3 h-3" />
+                          Target: {target.name} ({target.team_id}) · Status: {target.payment_status}
+                        </span>
+                      );
+                    }
+                    return null;
+                  })()}
+                </div>
+              )}
+            </div>
+
+            {/* UTR & Amount */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-semibold text-neutral-200 mb-1">
+                  UTR / Transaction Reference <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={newMappedUtr}
+                  onChange={(e) => setNewMappedUtr(e.target.value.trim())}
+                  placeholder="e.g. 428198273641"
+                  className="w-full px-3.5 py-2 bg-neutral-950 border border-neutral-800 rounded-xl text-xs font-mono text-neutral-50 focus:outline-none focus:border-brand-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-neutral-200 mb-1">
+                  Amount (₹)
+                </label>
+                <input
+                  type="number"
+                  min="0.01" step="0.01" required
+                  value={newMappedAmount}
+                  onChange={(e) => setNewMappedAmount(Number(e.target.value))}
+                  className="w-full px-3.5 py-2 bg-neutral-950 border border-neutral-800 rounded-xl text-xs font-mono text-neutral-50 focus:outline-none focus:border-brand-500"
+                />
+              </div>
+            </div>
+
+            {/* Screenshot File Upload */}
+            <div>
+              <label className="block text-xs font-semibold text-neutral-200 mb-1">
+                Payment Screenshot Proof <span className="text-rose-500">*</span>
+              </label>
+
+              <div className="border-2 border-neutral-800 border-dashed rounded-xl p-4 bg-neutral-950/50 hover:bg-neutral-950 text-center transition-colors">
+                {newMappedPreview ? (
+                  <div className="flex flex-col items-center gap-2">
+                    <img
+                      src={newMappedPreview}
+                      alt="Screenshot Preview"
+                      className="max-h-36 object-contain rounded-lg border border-neutral-800"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setNewMappedFile(null);
+                        setNewMappedPreview(null);
+                      }}
+                      className="text-xs text-rose-400 hover:underline"
+                    >
+                      Remove image
+                    </button>
+                  </div>
+                ) : (
+                  <div>
+                    <FileImage className="mx-auto h-8 w-8 text-neutral-400 mb-1" />
+                    <label
+                      htmlFor="new-mapped-screenshot"
+                      className="relative cursor-pointer rounded-md font-semibold text-brand-600 hover:text-brand-500 text-xs"
+                    >
+                      <span>Upload payment screenshot</span>
+                      <input
+                        id="new-mapped-screenshot"
+                        type="file"
+                        accept="image/png,image/jpeg,image/jpg,image/webp"
+                        className="sr-only"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            if (file.size > 5 * 1024 * 1024) {
+                              setNewMappedError('Screenshot size must be under 5MB');
+                              return;
+                            }
+                            setNewMappedFile(file);
+                            const reader = new FileReader();
+                            reader.onloadend = () => setNewMappedPreview(reader.result as string);
+                            reader.readAsDataURL(file);
+                          }
+                        }}
+                      />
+                    </label>
+                    <p className="text-xs text-neutral-400 mt-0.5">PNG, JPG, or WEBP up to 5MB</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Checkbox: Approve immediately */}
+            <label className="flex items-start gap-2 text-xs text-neutral-200 cursor-pointer pt-1">
+              <input
+                type="checkbox"
+                checked={newMappedApprove}
+                onChange={(e) => setNewMappedApprove(e.target.checked)}
+                className="mt-0.5 rounded border-neutral-800 bg-neutral-950 text-brand-600 focus:ring-brand-500"
+              />
+              <span>
+                <strong>Approve and mark target team as PAID immediately</strong>
+                <span className="block text-neutral-400 text-xs">
+                  Updates team payment status to PAID and records verified payment record.
+                </span>
+              </span>
+            </label>
+
+            {/* Admin Note */}
+            <div>
+              <label className="block text-xs font-semibold text-neutral-200 mb-1">
+                Admin Note / Audit Reason
+              </label>
+              <textarea
+                rows={2}
+                required maxLength={1000}
+                value={newMappedNote}
+                onChange={(e) => setNewMappedNote(e.target.value)}
+                placeholder="e.g. Mapped from offline payment proof submitted via support"
+                className="w-full px-3 py-1.5 bg-neutral-950 border border-neutral-800 rounded-xl text-xs text-neutral-100 placeholder-neutral-400 focus:outline-none focus:border-brand-500"
+              />
+            </div>
+
+            {/* Modal Actions */}
+            <div className="pt-3 flex flex-wrap items-center justify-end gap-2 border-t border-neutral-800">
+              <button
+                type="button"
+                disabled={isCreatingMapped}
+                onClick={() => setIsCreateMappedModalOpen(false)}
+                className="px-4 py-2 text-xs font-semibold text-neutral-300 hover:text-neutral-50 hover:bg-neutral-800 rounded-xl transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={isCreatingMapped || !newMappedTeamId.trim() || !newMappedUtr.trim() || !newMappedFile || !newMappedNote.trim()}
+                className="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-brand-600 hover:bg-brand-500 rounded-xl transition-all disabled:opacity-50"
+              >
+                {isCreatingMapped ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <span>Saving...</span>
+                  </>
+                ) : (
+                  <>
+                    <Check className="w-3.5 h-3.5" />
+                    <span>Confirm & Map Payment</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </form>
         </Modal>
       )}
     </div>

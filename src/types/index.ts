@@ -121,5 +121,8 @@ export interface QRPayment {
   reversed_at?: string;
   reversed_by?: string;
   reversal_reason?: string;
+  team_name?: string;
+  team_leader?: string;
+  team_contact?: string;
 }
 

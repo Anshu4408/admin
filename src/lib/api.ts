@@ -407,5 +407,19 @@ export const api = {
       const { data } = await apiClient.post<ApiResponse>(`/api/admin/qr-payments/${id}/reject`, { admin_note });
       return data;
     },
+    // Remap payment / screenshot to another team
+    remapPayment: async (id: number, payload: { target_team_id: string; admin_note?: string; approve?: boolean }) => {
+      const { data } = await apiClient.post<ApiResponse>(`/api/admin/qr-payments/${id}/remap`, payload);
+      return data;
+    },
+    // Create direct mapped payment with screenshot proof
+    createMappedPayment: async (formData: FormData) => {
+      const { data } = await apiClient.post<ApiResponse>('/api/admin/qr-payments/create-mapped', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return data;
+    },
   }
 };
