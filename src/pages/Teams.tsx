@@ -19,6 +19,7 @@ import { Modal } from '../components/Modal';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { StatusBadge, Badge } from '../components/Badge';
 import { EmptyState } from '../components/EmptyState';
+import { ExportSelectedPsTeams } from '../components/ExportSelectedPsTeams';
 import { DomainField } from '../components/DomainField';
 import { eventOperations, eligibleProblem } from '../lib/eventOperations';
 import type { ProblemStatement } from '../lib/eventOperations';
@@ -233,7 +234,8 @@ export const TeamsPage: React.FC = () => {
       <Navbar
         title="Teams"
         subtitle={`${pagination.total} registered teams`}
-        actions={
+        actions={<>
+          <ExportSelectedPsTeams />
           <button
             onClick={() => api.teams.downloadCsv()}
             className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-xs font-semibold text-white transition-all"
@@ -241,7 +243,7 @@ export const TeamsPage: React.FC = () => {
             <Download className="w-3.5 h-3.5" />
             <span>Export CSV</span>
           </button>
-        }
+        </>}
       />
 
       <main className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 max-w-[1600px] w-full mx-auto space-y-6">

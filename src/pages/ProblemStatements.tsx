@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Plus, RefreshCw } from 'lucide-react';
+import { ExportSelectedPsTeams } from '../components/ExportSelectedPsTeams';
 import { Navbar } from '../components/Navbar';
 import { Modal } from '../components/Modal';
 import { eventOperations, operationError, standardDomains } from '../lib/eventOperations';
@@ -28,7 +29,7 @@ export function ProblemStatementsPage() {
     setBusy(true); setSaveError('');
     try { const r = await eventOperations.saveProblem(editor.item?.statement_id || null, { ...draft, domains: allowed, version: editor.item?.version }); if (!r.success) throw new Error(r.message); setEditor(null); await load(); } catch (e) { setSaveError(operationError(e, 'Could not save statement')); } finally { setBusy(false); }
   };
-  return <><Navbar title="Problem statements" subtitle="Publish challenges and choose which domains can select each one." actions={<><button className={button} disabled={loading} onClick={() => { void load(); }}><RefreshCw className="h-4 w-4 shrink-0" />Refresh</button><button className={button} onClick={() => edit(null)}><Plus className="h-4 w-4 shrink-0" />Add statement</button></>} />
+  return <><Navbar title="Problem statements" subtitle="Publish challenges and choose which domains can select each one." actions={<><ExportSelectedPsTeams /><button className={button} disabled={loading} onClick={() => { void load(); }}><RefreshCw className="h-4 w-4 shrink-0" />Refresh</button><button className={button} onClick={() => edit(null)}><Plus className="h-4 w-4 shrink-0" />Add statement</button></>} />
     <main className="mx-auto w-full min-w-0 max-w-6xl space-y-4 p-4 sm:p-6 lg:p-8">
       <p className="text-xs leading-6 text-neutral-400">Published statements appear on the registration dashboard for eligible teams. Open selection in Overview → Event controls. Unpublishing retains existing selections. Renaming updates selected titles.</p>
       {error && <p role="alert" className="text-sm text-rose-300">{error}</p>}
