@@ -19,8 +19,11 @@ import { Modal } from '../components/Modal';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { StatusBadge, Badge } from '../components/Badge';
 import { EmptyState } from '../components/EmptyState';
+import { DomainField } from '../components/DomainField';
+import { eventOperations, eligibleProblem } from '../lib/eventOperations';
+import type { ProblemStatement } from '../lib/eventOperations';
 import { api } from '../lib/api';
-import type { Team, Pagination } from '../types';
+import type { Team, Pagination, User } from '../types';
 
 export const TeamsPage: React.FC = () => {
   const [teams, setTeams] = useState<Team[]>([]);
@@ -47,6 +50,18 @@ export const TeamsPage: React.FC = () => {
   const [editFormData, setEditFormData] = useState<Partial<Team>>({});
   const [editError, setEditError] = useState<string | null>(null);
   const [isSavingEdit, setIsSavingEdit] = useState(false);
+  const [problemOptions, setProblemOptions] = useState<ProblemStatement[]>([]);
+  const [editMembers, setEditMembers] = useState<User[]>([]);
+  const [problemsLoading, setProblemsLoading] = useState(false);
+  useEffect(() => {
+    if (!editingTeam) return;
+    let active = true;
+    setProblemsLoading(true);
+    setEditMembers([]);
+    api.teams.get(editingTeam.team_id).then(r => { if (active && r.success) setEditMembers(r.data?.members || []); }).catch(() => { if (active) setEditError('Could not load team members. Reopen this editor to retry.'); });
+    eventOperations.problems().then(r => { if (!r.success || !r.data) throw new Error('Problem statements unavailable'); if (active) setProblemOptions(r.data); }).catch(() => { if (active) { setProblemOptions([]); setEditError('Could not load problem statements. Reopen this editor to retry.'); } }).finally(() => { if (active) setProblemsLoading(false); });
+    return () => { active = false; };
+  }, [editingTeam]);
   const editErrorRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (editError) {
@@ -170,15 +185,17 @@ export const TeamsPage: React.FC = () => {
     e.preventDefault();
     if (!editingTeam || isSavingEdit) return;
     setEditError(null);
-    const payload: Partial<Pick<Team, 'name' | 'contact' | 'domain' | 'ispublic'>> = {};
+    const payload: Partial<Pick<Team, 'name' | 'contact' | 'domain' | 'ispublic' | 'problem_statement' | 'leader_user_id'>> = {};
     if (editFormData.name?.trim() !== editingTeam.name) payload.name = editFormData.name?.trim();
     if (editFormData.contact?.trim() !== editingTeam.contact) payload.contact = editFormData.contact?.trim();
     if ((editFormData.domain || '').trim() !== (editingTeam.domain || '')) payload.domain = editFormData.domain?.trim();
+    if ((editFormData.problem_statement || '') !== (editingTeam.problem_statement || '')) payload.problem_statement = editFormData.problem_statement || '';
+    if (editFormData.leader_user_id && editFormData.leader_user_id !== editingTeam.leader_user_id) payload.leader_user_id = editFormData.leader_user_id;
     if (editFormData.ispublic !== editingTeam.ispublic) payload.ispublic = editFormData.ispublic;
     if (!Object.keys(payload).length) { setEditingTeam(null); return; }
     setIsSavingEdit(true);
     try {
-      const res = await api.teams.update(editingTeam.team_id, payload);
+      const res = await eventOperations.updateTeam(editingTeam.team_id, payload);
       if (!res.success) throw new Error(res.message || 'Failed to update team');
       showNotification('success', 'Team updated successfully');
       setEditingTeam(null);
@@ -418,6 +435,8 @@ export const TeamsPage: React.FC = () => {
                                   name: team.name,
                                   contact: team.contact,
                                   domain: team.domain || '',
+                                  problem_statement: team.problem_statement || '',
+                                  leader_user_id: team.leader_user_id,
                                   ispublic: team.ispublic,
                                 });
                               }}
@@ -516,13 +535,8 @@ export const TeamsPage: React.FC = () => {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-semibold text-neutral-200 mb-1">Domain</label>
-                <input
-                  type="text"
-                  value={editFormData.domain || ''}
-                  onChange={(e) => setEditFormData({ ...editFormData, domain: e.target.value })}
-                  className="w-full px-3.5 py-2 bg-neutral-950 border border-neutral-800 rounded-xl text-xs text-neutral-50 focus:outline-none focus:border-brand-500 font-medium"
-                />
+                <label htmlFor="team-domain" className="block text-xs font-semibold text-neutral-200 mb-1">Domain</label>
+                <DomainField key={editingTeam.team_id} value={editFormData.domain || ''} onChange={domain => setEditFormData({ ...editFormData, domain, problem_statement: '' })} />
               </div>
 
               <div>
@@ -536,10 +550,20 @@ export const TeamsPage: React.FC = () => {
 
             <div>
               <label className="block text-xs font-semibold text-neutral-200 mb-1">Problem Statement</label>
-              <p className="rounded-lg border border-neutral-800 bg-neutral-950 p-3 text-xs text-neutral-300">{editingTeam.problem_statement || 'Not selected'}</p>
-              <p className="mt-2 text-xs text-neutral-400">Selected by the team leader on the registration website when selection is open.</p>
+              <select aria-label="Problem Statement" value={editFormData.problem_statement || ''} disabled={problemsLoading} onChange={e => setEditFormData({ ...editFormData, problem_statement: e.target.value })} className="min-h-11 w-full min-w-0 rounded-lg border border-neutral-700 bg-neutral-950 px-3 text-xs">
+                <option value="">No statement selected</option>
+                {editFormData.problem_statement && !problemOptions.some(p => eligibleProblem(p, editFormData.domain || '') && p.title === editFormData.problem_statement) && <option value={editFormData.problem_statement} disabled>{editFormData.problem_statement} (existing selection)</option>}
+                {problemOptions.filter(p => eligibleProblem(p, editFormData.domain || '')).map(p => <option key={p.statement_id} value={p.title}>{p.title}</option>)}
+              </select>
+              <p className="mt-2 text-xs leading-relaxed text-neutral-400">Admins can correct paid teams and assign an eligible statement even when selection is closed. Changing the domain clears the previous selection. Payment approvals remain in QR Codes &amp; UTR.</p>
             </div>
 
+            <label className="block space-y-2 text-xs font-semibold text-neutral-200">Team leader
+              <select aria-label="Team leader" value={editFormData.leader_user_id || ''} onChange={e => setEditFormData({ ...editFormData, leader_user_id: e.target.value })} className="min-h-11 w-full min-w-0 rounded-lg border border-neutral-700 bg-neutral-950 px-3 text-xs">
+                {!editMembers.some(member => member.user_id === editFormData.leader_user_id) && <option value={editFormData.leader_user_id || ''}>Current leader</option>}
+                {editMembers.map(member => <option key={member.user_id} value={member.user_id}>{member.name || member.email} · {member.roll_number || member.email}</option>)}
+              </select>
+            </label>
             <div className="flex items-center gap-2 pt-1">
               <input
                 type="checkbox"

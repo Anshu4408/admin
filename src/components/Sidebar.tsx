@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Users, Layers, CreditCard, QrCode, ShieldCheck, LogOut, Menu, X } from 'lucide-react';
+import { LayoutDashboard, Users, Layers, CreditCard, QrCode, ShieldCheck, LogOut, Menu, X, Ticket, FileText } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export const Sidebar: React.FC = () => {
@@ -10,6 +10,8 @@ export const Sidebar: React.FC = () => {
     { to: '/', label: 'Overview', icon: LayoutDashboard, allowed: true },
     { to: '/users', label: 'Participants', icon: Users, allowed: canManageUsers },
     { to: '/teams', label: 'Teams', icon: Layers, allowed: canManageTeams },
+    { to: '/issues', label: 'Tickets', icon: Ticket, allowed: true },
+    { to: '/problem-statements', label: 'Problem statements', icon: FileText, allowed: canManageTeams },
     { to: '/payments', label: 'Payments', icon: CreditCard, allowed: canManagePayments },
     { to: '/qr-payments', label: 'QR codes & UTR', icon: QrCode, allowed: canManagePayments },
     { to: '/admins', label: 'Administrators', icon: ShieldCheck, allowed: canManageAdmins || isSuperAdmin },

@@ -5,6 +5,8 @@ import { Layout } from './components/Layout';
 import { Login } from './pages/Login';
 import { Dashboard } from './pages/Dashboard';
 import { UsersPage } from './pages/Users';
+import { IssuesPage } from './pages/Issues';
+import { ProblemStatementsPage } from './pages/ProblemStatements';
 import { TeamsPage } from './pages/Teams';
 import { PaymentsPage } from './pages/Payments';
 import { AdminsPage } from './pages/Admins';
@@ -25,6 +27,8 @@ export function App() {
             <Route element={<Layout />}>
               <Route path="/" element={<Dashboard />} />
               <Route path="/users" element={<UsersPage />} />
+              <Route path="/issues" element={<IssuesPage />} />
+              <Route path="/problem-statements" element={<ProblemStatementsPage />} />
               <Route path="/teams" element={<TeamsPage />} />
               <Route path="/payments" element={<PaymentsPage />} />
               <Route path="/qr-payments" element={<QRPaymentsPage />} />
