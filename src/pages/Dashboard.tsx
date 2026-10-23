@@ -10,6 +10,7 @@ import {
   Sparkles,
   CreditCard,
 } from 'lucide-react';
+import { EventControls } from '../components/EventControls';
 import { RegistrationControl } from '../components/RegistrationControl';
 import { Navbar } from '../components/Navbar';
 import { StatsCard } from '../components/StatsCard';
@@ -79,6 +80,7 @@ export const Dashboard: React.FC = () => {
       <main className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 max-w-[1600px] w-full mx-auto space-y-7">
         {exportError && <div role="alert" className="p-4 rounded-xl text-xs font-semibold border border-rose-500/25 bg-rose-500/10 text-rose-400">{exportError}</div>}
         <RegistrationControl />
+        <EventControls />
         {/* Top 4 Key Metric Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
           <StatsCard
