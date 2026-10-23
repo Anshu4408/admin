@@ -5,6 +5,7 @@ import { Layout } from './components/Layout';
 import { Login } from './pages/Login';
 import { Dashboard } from './pages/Dashboard';
 import { UsersPage } from './pages/Users';
+import { SubmissionsPage } from './pages/Submissions';
 import { IssuesPage } from './pages/Issues';
 import { ProblemStatementsPage } from './pages/ProblemStatements';
 import { TeamsPage } from './pages/Teams';
@@ -27,6 +28,7 @@ export function App() {
             <Route element={<Layout />}>
               <Route path="/" element={<Dashboard />} />
               <Route path="/users" element={<UsersPage />} />
+              <Route path="/submissions" element={<SubmissionsPage />} />
               <Route path="/issues" element={<IssuesPage />} />
               <Route path="/problem-statements" element={<ProblemStatementsPage />} />
               <Route path="/teams" element={<TeamsPage />} />
